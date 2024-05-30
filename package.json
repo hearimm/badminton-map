@@ -10,7 +10,12 @@
     "gen-types": "supabase gen types typescript --linked > supabase/types.ts"
   },
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.0.4",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-slot": "^1.0.2",
     "@supabase/supabase-js": "^2.43.4",
+    "@types/navermaps": "^3.7.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.379.0",
