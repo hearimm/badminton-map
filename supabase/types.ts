@@ -34,6 +34,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      badminton_clubs: {
+        Row: {
+          address: string | null
+          club_id: number | null
+          club_name: string | null
+          club_review1: string | null
+          club_review2: string | null
+          club_review3: string | null
+          club_website: string | null
+          contact: string | null
+          courts: string | null
+          date_added: string | null
+          fee: string | null
+          field1: string | null
+          field2: string | null
+          field3: string | null
+          flooring: string | null
+          id: number
+          latitude: number | null
+          longitude: number | null
+          map_link: string | null
+          name: string | null
+          other_link1: string | null
+          other_link2: string | null
+          other_link3: string | null
+          others: string | null
+          schedule: string | null
+          type: string | null
+        }
+        Insert: {
+          address?: string | null
+          club_id?: number | null
+          club_name?: string | null
+          club_review1?: string | null
+          club_review2?: string | null
+          club_review3?: string | null
+          club_website?: string | null
+          contact?: string | null
+          courts?: string | null
+          date_added?: string | null
+          fee?: string | null
+          field1?: string | null
+          field2?: string | null
+          field3?: string | null
+          flooring?: string | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          map_link?: string | null
+          name?: string | null
+          other_link1?: string | null
+          other_link2?: string | null
+          other_link3?: string | null
+          others?: string | null
+          schedule?: string | null
+          type?: string | null
+        }
+        Update: {
+          address?: string | null
+          club_id?: number | null
+          club_name?: string | null
+          club_review1?: string | null
+          club_review2?: string | null
+          club_review3?: string | null
+          club_website?: string | null
+          contact?: string | null
+          courts?: string | null
+          date_added?: string | null
+          fee?: string | null
+          field1?: string | null
+          field2?: string | null
+          field3?: string | null
+          flooring?: string | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          map_link?: string | null
+          name?: string | null
+          other_link1?: string | null
+          other_link2?: string | null
+          other_link3?: string | null
+          others?: string | null
+          schedule?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           created_at: string
