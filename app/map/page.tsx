@@ -24,10 +24,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import Header from "@/components/header"
 import NaverMap from "@/components/naver-map";
 
 import { Database } from "@/supabase/types";
-import Header from "@/components/header";
 type BadmintonClub = Database['public']['Tables']['badminton_clubs']['Row'];
 
 export default function Dashboard() {

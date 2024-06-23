@@ -154,6 +154,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reserve: {
+        Row: {
+          created_at: string
+          created_user: string | null
+          date: string | null
+          desc: string | null
+          id: number
+          level: string | null
+          max: number | null
+          modified_at: string | null
+          modified_user: string | null
+          place: string | null
+          time: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_user?: string | null
+          date?: string | null
+          desc?: string | null
+          id?: number
+          level?: string | null
+          max?: number | null
+          modified_at?: string | null
+          modified_user?: string | null
+          place?: string | null
+          time?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_user?: string | null
+          date?: string | null
+          desc?: string | null
+          id?: number
+          level?: string | null
+          max?: number | null
+          modified_at?: string | null
+          modified_user?: string | null
+          place?: string | null
+          time?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -444,6 +486,10 @@ export type Database = {
           metadata: Json
           updated_at: string
         }[]
+      }
+      operation: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       search: {
         Args: {
