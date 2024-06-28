@@ -23,10 +23,10 @@ type BadmintonClub = Database['public']['Tables']['badminton_clubs']['Row'];
 async function fetchWithId(id: string): Promise<BadmintonClub> {
     try {
         const { data, error } = await supabase
-        .from('badminton_clubs')
-        .select('*')
-        .eq('id', id)    // Correct
-        
+            .from('badminton_clubs')
+            .select('*')
+            .eq('id', id)    // Correct
+
         if (error) throw error;
 
         console.log('Data fetched successfully:', data);
@@ -52,6 +52,62 @@ function NaverMapOneComponent(props: NaverMapOneComponentProps) {
     }
 }
 
+type CourtDetailComponentProps = {
+    court: BadmintonClub
+}
+const CourtDetail = (props: CourtDetailComponentProps) => {
+
+    const { court } = props;
+    return (
+
+        <div>
+            <Card className="mt-2">
+
+                <CardHeader className="flex flex-row items-center">
+                    <div className="grid gap-2">
+                        <CardTitle>{court.name}</CardTitle>
+                        <CardDescription>{court.address} <span><a href={court.map_link || undefined} target="_blank" rel="noopener noreferrer" className="text-blue-500">View on Naver Map</a></span></CardDescription>
+
+                    </div>
+                    <Button asChild size="sm" className="ml-auto gap-1">
+                        <Link href={`/court/update/${court.id}`} prefetch={false}>
+                            Update
+                            <ArrowUpRight className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <div className="mb-4">
+                        <strong>Contact:</strong> {court.contact}
+                    </div>
+                    <div className="mb-4">
+                        <strong>Website:</strong> <a href={court.club_website!} target="_blank" rel="noopener noreferrer">{court.club_website}</a>
+                    </div>
+                    <div className="mb-4">
+                        <strong>Type:</strong> {court.type}
+                    </div>
+                    <div className="mb-4">
+                        <h2 className="text-xl font-bold">Facilities</h2>
+                        <p><strong>Courts:</strong> {court.courts}</p>
+                        <p><strong>Flooring:</strong> {court.flooring}</p>
+                    </div>
+                    <div className="mb-4">
+                        <h2 className="text-xl font-bold">Schedule & Fees</h2>
+                        <p><strong>Schedule:</strong> {court.schedule}</p>
+                        <p><strong>Fee:</strong> {court.fee}</p>
+                    </div>
+                    <div className="mb-4">
+                        <h2 className="text-xl font-bold">Additional Links</h2>
+                        <p><strong>{court.club_review1}</strong><a href={court.other_link1 || undefined} target="_blank" rel="noopener noreferrer"> {court.other_link1}</a></p>
+                        <p><strong>{court.club_review2}</strong><a href={court.other_link2 || undefined} target="_blank" rel="noopener noreferrer"> {court.other_link2}</a></p>
+                        <p><strong>{court.club_review3}</strong><a href={court.other_link3 || undefined} target="_blank" rel="noopener noreferrer"> {court.other_link3}</a></p>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
 export default async function Page({ params }: { params: { id: string } }) {
 
     const data = await fetchWithId(params.id)
@@ -62,138 +118,13 @@ export default async function Page({ params }: { params: { id: string } }) {
         <div className="flex min-h-screen w-full flex-col">
             <Header></Header>
             <div id="mainWrap" className="mx-10">
-            <Card className="xl:col-span-2 h-[300px]" x-chunk="dashboard-01-chunk-5">
-                <NaverMapOneComponent data={data} />
-            </Card>
+                <Card className="xl:col-span-2 h-[300px]" x-chunk="dashboard-01-chunk-5">
+                    <NaverMapOneComponent data={data} />
+                </Card>
 
-            <Card className="mt-2" x-chunk="dashboard-01-chunk-4">
-                <CardHeader className="flex flex-row items-center">
-                    <div className="grid gap-2">
-                        <CardTitle>매치 정보</CardTitle>
-                        <CardDescription>Recent transactions from your store.</CardDescription>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="mt-2" x-chunk="dashboard-01-chunk-4">
-                <CardHeader className="flex flex-row items-center">
-                    <div className="grid gap-2">
-                        <CardTitle>매치 포인트</CardTitle>
-                        <CardDescription>Recent transactions from your store.</CardDescription>
-                    </div>
-                    <Button asChild size="sm" className="ml-auto gap-1">
-                        <Link href="/schedule/create" prefetch={false}>
-                            만들기
-                            <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <div>
-                    Level : {}<br/>
-                    Max : 1 / {}<br/>
-                    준비물 : 라켓 / 실내전용 운동화(농구화/배드민턴화/배구화)<br/>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="mt-2" x-chunk="dashboard-01-chunk-4">
-                <CardHeader className="flex flex-row items-center">
-                    <div className="grid gap-2">
-                        <CardTitle>참석자 정보</CardTitle>
-                        <CardDescription>Recent transactions from your store.</CardDescription>
-                    </div>
-                    <Button asChild size="sm" className="ml-auto gap-1">
-                        <Link href="/schedule/create" prefetch={false}>
-                            만들기
-                            <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <div>
-                        참석자 정보
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="mt-2" x-chunk="dashboard-01-chunk-4">
-                <CardHeader className="flex flex-row items-center">
-                    <div className="grid gap-2">
-                        <CardTitle>코트 정보</CardTitle>
-                        <CardDescription>Recent transactions from your store.</CardDescription>
-                    </div>
-                    <Button asChild size="sm" className="ml-auto gap-1">
-                        <Link href="/schedule/create" prefetch={false}>
-                            만들기
-                            <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <div>
-                    코트 3면
-                    무료주차
-                    음료 판매
-                    화장실
-
-                        구장 특이사항
-                        ■ 찾아가는 길 : 
-
-                        ■ 주차 : 
-                        ■ 흡연 : 지정된 장소에서만 흡연 가능 (흡연 구역 외에서 흡연 적발 시 이후 서비스 이용에 제재가 있을 수 있습니다.)
-                        ■ 기타
-                        - 상의를 탈의한 채로 건물 이동, 화장실 이용을 삼가주시기 바랍니다. (건물 내 학생 항시 상주)
-                        - 화장실 : 건물 내 사용
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="mt-2" x-chunk="dashboard-01-chunk-4">
-                <CardHeader className="flex flex-row items-center">
-                    <div className="grid gap-2">
-                        <CardTitle>진행방식</CardTitle>
-                        <CardDescription>Recent transactions from your store.</CardDescription>
-                    </div>
-                    <Button asChild size="sm" className="ml-auto gap-1">
-                        <Link href="/schedule/create" prefetch={false}>
-                            만들기
-                            <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <div>
-                        규칙을 준수..
-                        초보자를 배려해주세요..
-                        번갈아가며 매치가 진행되도록 매니저가 잘 도와주세요.
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="mt-2" x-chunk="dashboard-01-chunk-4">
-                <CardHeader className="flex flex-row items-center">
-                    <div className="grid gap-2">
-                        <CardTitle>환불정책</CardTitle>
-                        <CardDescription>Recent transactions from your store.</CardDescription>
-                    </div>
-                    <Button asChild size="sm" className="ml-auto gap-1">
-                        <Link href="/schedule/create" prefetch={false}>
-                            만들기
-                            <ArrowUpRight className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    환불기준은 .........
-                </CardContent>
-            </Card>
+                <CourtDetail court={data}></CourtDetail>
             </div>
-            
+
         </div>
 
     )
