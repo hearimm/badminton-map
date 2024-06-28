@@ -1,7 +1,3 @@
-Here is the updated README file with the proprietary license and without the contributing section:
-
----
-
 # Badminton Map
 
 A web application to locate and review badminton courts.
@@ -36,12 +32,14 @@ Follow these instructions to set up the project locally.
 ### Installation
 
 1. Clone the repository:
+
    ```sh
    git clone https://github.com/hearimm/badminton-map.git
    cd badminton-map
    ```
 
 2. Install dependencies:
+
    ```sh
    npm install
    # or
@@ -50,6 +48,7 @@ Follow these instructions to set up the project locally.
 
 3. Set up environment variables:
    Create a `.env.local` file in the root directory and add your Supabase credentials and other environment variables:
+
    ```sh
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -58,6 +57,7 @@ Follow these instructions to set up the project locally.
 ### Usage
 
 1. Run the development server:
+
    ```sh
    npm run dev
    # or
@@ -76,4 +76,4 @@ All rights reserved. This software and associated documentation files (the "Soft
 
 The Software may not be used, copied, modified, or distributed without express permission from 헤아림.
 
-For permission requests, please contact: doksul23@gmail.com
+For permission requests, please contact: `doksul23@gmail.com`
