@@ -1,0 +1,31 @@
+import { z } from 'zod';
+
+export
+  const badmintonClubSchema = z.object({
+    address: z.string().nullable(),
+    club_id: z.number().nullable(),
+    club_name: z.string().nullable(),
+    club_review1: z.string().nullable(),
+    club_review2: z.string().nullable(),
+    club_review3: z.string().nullable(),
+    club_website: z.string().url().nullable(),
+    contact: z.string().nullable(),
+    courts: z.string().nullable(),
+    date_added: z.string().nullable(),
+    fee: z.string().nullable(),
+    field1: z.string().nullable(),
+    field2: z.string().nullable(),
+    field3: z.string().nullable(),
+    flooring: z.string().nullable(),
+    id: z.number(),
+    latitude: z.number().nullable(),
+    longitude: z.number().nullable(),
+    map_link: z.string().url().nullable(),
+    name: z.string().min(1, "Name is required"),
+    other_link1: z.string().url().nullable(),
+    other_link2: z.string().url().nullable(),
+    other_link3: z.string().url().nullable(),
+    others: z.string().nullable(),
+    schedule: z.string().nullable(),
+    type: z.string().nullable(),
+  });

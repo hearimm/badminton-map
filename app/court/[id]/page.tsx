@@ -70,7 +70,7 @@ const CourtDetail = (props: CourtDetailComponentProps) => {
 
                     </div>
                     <Button asChild size="sm" className="ml-auto gap-1">
-                        <Link href={`/court/update/${court.id}`} prefetch={false}>
+                        <Link href={`/court/${court.id}/edit`} prefetch={false}>
                             Update
                             <ArrowUpRight className="h-4 w-4" />
                         </Link>

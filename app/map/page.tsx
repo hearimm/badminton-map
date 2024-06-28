@@ -60,7 +60,7 @@ export default function Dashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>체육관</TableHead>
-                    <TableHead>클럽</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -71,11 +71,18 @@ export default function Dashboard() {
                       <Badge>{club.type}</Badge>{club.name}
                     </div>
                     <div className="hidden text-sm text-muted-foreground md:inline">
-                      {club.schedule}
+                      {club.schedule} <br/>
+                      {club.club_name}
                     </div>
                     
                     </TableCell>
-                    <TableCell>{club.club_name}</TableCell>
+                    <TableCell>
+                    <Button asChild size="sm" className="ml-auto gap-1">
+                      <Link href={`/court/${club.id}`}>
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 </TableBody>
