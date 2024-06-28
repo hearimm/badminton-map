@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Here is the updated README file with the proprietary license and without the contributing section:
+
+---
+
+# Badminton Map
+
+A web application to locate and review badminton courts.
+
+## Table of Contents
+
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [License](#license)
+
+## Features
+
+- Locate badminton courts on a map
+- Search courts by name or location
+- View court details and reviews
+- Add and rate courts
+- User authentication with Supabase
 
 ## Getting Started
 
-First, run the development server:
+Follow these instructions to set up the project locally.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Prerequisites
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Node.js (v14 or higher)
+- npm or yarn
+- Supabase account
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/hearimm/badminton-map.git
+   cd badminton-map
+   ```
 
-## Learn More
+2. Install dependencies:
+   ```sh
+   npm install
+   # or
+   yarn install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory and add your Supabase credentials and other environment variables:
+   ```sh
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Usage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+1. Run the development server:
+   ```sh
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-## Deploy on Vercel
+2. Open your browser and navigate to `http://localhost:3000`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Proprietary License
+
+Copyright (c) 2024 헤아림
+
+All rights reserved. This software and associated documentation files (the "Software") are the proprietary property of 헤아림. Unauthorized copying, modification, distribution, or use of the Software, in whole or in part, is strictly prohibited.
+
+The Software may not be used, copied, modified, or distributed without express permission from 헤아림.
+
+For permission requests, please contact: doksul23@gmail.com
