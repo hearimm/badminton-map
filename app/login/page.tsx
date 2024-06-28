@@ -1,31 +1,43 @@
 'use client';
 
-import { login, signup } from './actions'
+import { z } from 'zod';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createClient } from '@/utils/supabase/client';
+import { login, signup } from './actions';
 
-import Link from "next/link"
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+});
 
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-
-import { createClient } from '@/utils/supabase/client'
+type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
-  const supabase = createClient()
+  const supabase = createClient();
+  const { control, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema)
+  });
 
   const signInWithKakao = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-  }
+    });
+  };
+
+  const onSubmit = async (data: LoginFormInputs) => {
+    await login(data);
+  };
+
+  const onSignUp = async (data: LoginFormInputs) => {
+    await signup(data);
+  };
 
   return (
     <Card className="mx-auto max-w-sm">
@@ -36,15 +48,17 @@ export default function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              required
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} id="email" type="email" placeholder="m@example.com" />
+              )}
             />
+            {errors.email && <p className="text-red-500">{errors.email.message as string}</p>}
           </div>
           <div className="grid gap-2">
             <div className="flex items-center">
@@ -53,22 +67,29 @@ export default function LoginForm() {
                 Forgot your password?
               </Link>
             </div>
-            <Input id="password" type="password" required />
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} id="password" type="password" />
+              )}
+            />
+            {errors.password && <p className="text-red-500">{errors.password.message as string}</p>}
           </div>
-          <Button onClick={login} type="submit" className="w-full">
+          <Button type="submit" className="w-full">
             Login
           </Button>
           <Button onClick={signInWithKakao} variant="outline" className="w-full">
             Login with Kakao
           </Button>
-        </div>
+        </form>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
-          <Link onClick={signup} href="#" className="underline">
+          <Link href="#" className="underline" onClick={handleSubmit(onSignUp)}>
             Sign up
           </Link>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
