@@ -21,7 +21,7 @@ export default function NaverMap({ onPlacesFetched: onPlacesFetched }: NaverMapP
     console.log('use effect')
   }, []);
 
-  async function fetchWithinBounds(bounds: naver.maps.Bounds) {
+  async function fetchWithinBounds(bounds: naver.maps.Bounds) : Promise<Places[]> {
     try {
       const { data, error } = await supabase
         .from('places')
