@@ -154,14 +154,16 @@ export type Database = {
         }
         Relationships: []
       }
-      reserve: {
+      matches: {
         Row: {
           created_at: string
           created_user: string | null
           date: string | null
-          desc: string | null
+          description: string | null
           id: number
           level: string | null
+          manager_id: string | null
+          match_time: string | null
           max: number | null
           modified_at: string | null
           modified_user: string | null
@@ -172,9 +174,11 @@ export type Database = {
           created_at?: string
           created_user?: string | null
           date?: string | null
-          desc?: string | null
+          description?: string | null
           id?: number
           level?: string | null
+          manager_id?: string | null
+          match_time?: string | null
           max?: number | null
           modified_at?: string | null
           modified_user?: string | null
@@ -185,14 +189,111 @@ export type Database = {
           created_at?: string
           created_user?: string | null
           date?: string | null
-          desc?: string | null
+          description?: string | null
           id?: number
           level?: string | null
+          manager_id?: string | null
+          match_time?: string | null
           max?: number | null
           modified_at?: string | null
           modified_user?: string | null
           place?: string | null
           time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      places: {
+        Row: {
+          address: string | null
+          club_id: number | null
+          club_name: string | null
+          club_review1: string | null
+          club_review2: string | null
+          club_review3: string | null
+          club_website: string | null
+          contact: string | null
+          courts: string | null
+          date_added: string | null
+          fee: string | null
+          field1: string | null
+          field2: string | null
+          field3: string | null
+          flooring: string | null
+          id: number
+          latitude: number | null
+          longitude: number | null
+          map_link: string | null
+          name: string | null
+          other_link1: string | null
+          other_link2: string | null
+          other_link3: string | null
+          others: string | null
+          schedule: string | null
+          type: string | null
+        }
+        Insert: {
+          address?: string | null
+          club_id?: number | null
+          club_name?: string | null
+          club_review1?: string | null
+          club_review2?: string | null
+          club_review3?: string | null
+          club_website?: string | null
+          contact?: string | null
+          courts?: string | null
+          date_added?: string | null
+          fee?: string | null
+          field1?: string | null
+          field2?: string | null
+          field3?: string | null
+          flooring?: string | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          map_link?: string | null
+          name?: string | null
+          other_link1?: string | null
+          other_link2?: string | null
+          other_link3?: string | null
+          others?: string | null
+          schedule?: string | null
+          type?: string | null
+        }
+        Update: {
+          address?: string | null
+          club_id?: number | null
+          club_name?: string | null
+          club_review1?: string | null
+          club_review2?: string | null
+          club_review3?: string | null
+          club_website?: string | null
+          contact?: string | null
+          courts?: string | null
+          date_added?: string | null
+          fee?: string | null
+          field1?: string | null
+          field2?: string | null
+          field3?: string | null
+          flooring?: string | null
+          id?: number
+          latitude?: number | null
+          longitude?: number | null
+          map_link?: string | null
+          name?: string | null
+          other_link1?: string | null
+          other_link2?: string | null
+          other_link3?: string | null
+          others?: string | null
+          schedule?: string | null
+          type?: string | null
         }
         Relationships: []
       }

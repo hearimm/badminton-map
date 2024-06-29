@@ -17,13 +17,13 @@ import {
 import { supabase } from "@/lib/initSupabase"
 import { Database } from "@/supabase/types";
 
-type Reserve = Database['public']['Tables']['reserve']['Row'];
+type Matches = Database['public']['Tables']['matches']['Row'];
 
 
-async function fetchWithId(id: string): Promise<Reserve> {
+async function fetchWithId(id: string): Promise<Matches> {
     try {
         const { data, error } = await supabase
-            .from('reserve')
+            .from('matches')
             .select('*')
             .eq('id', id)    // Correct
 
@@ -38,7 +38,7 @@ async function fetchWithId(id: string): Promise<Reserve> {
 }
 
 type NaverMapOneComponentProps = {
-    data: Reserve
+    data: Matches
 }
 
 function NaverMapOneComponent(props: NaverMapOneComponentProps) {

@@ -1,7 +1,10 @@
+'use client'
+
 import Link from "next/link"
 import {
   ArrowUpRight,
 } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -24,13 +27,13 @@ import Header from "@/components/header"
 
 import { supabase } from "@/lib/initSupabase"
 import { Database } from "@/supabase/types";
-type Reserve = Database['public']['Tables']['reserve']['Row'];
 
+type Matches = Database['public']['Tables']['matches']['Row'];
 
-async function fetch(): Promise<Reserve[]> {
+async function fetchMatches(): Promise<Matches[]> {
   try {
       const { data, error } = await supabase
-          .from('reserve')
+          .from('matches')
           .select('*')
 
       if (error) throw error;
@@ -43,12 +46,21 @@ async function fetch(): Promise<Reserve[]> {
   }
 }
 
-export default async function Schedule() {
+export default function Schedule() {
+  const [matches, setMatches] = useState<Matches[]>([]);
+
+  useEffect(() => {
+    const getMatches = async () => {
+      const matchList = await fetchMatches();
+      setMatches(matchList);
+    };
+    getMatches();
+  }, []);
 
   type LinkButtonProps = {
     children: React.ReactNode,
-    status: String // 부모컴포넌트에서 import 해온 타입을 재사용 해 줍시다.
-    id: Number // 부모컴포넌트에서 import 해온 타입을 재사용 해 줍시다.
+    status: String
+    id: Number
   }
   const LinkButton = (props: LinkButtonProps) => {
     const { status, id } = props;
@@ -66,8 +78,6 @@ export default async function Schedule() {
     }
   }
 
-  const reserveList = await fetch()
-  
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header></Header>
@@ -97,17 +107,17 @@ export default async function Schedule() {
                 </TableHeader>
                 <TableBody>
                 {
-                  reserveList.map(reserve => (
-                    <TableRow key={reserve.id}>
+                  matches.map(match => (
+                    <TableRow key={match.id}>
                     <TableCell>
-                      <div className="font-medium">{reserve.time}</div>
+                      <div className="font-medium">{match.time}</div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{reserve.place}</div>
-                      <div className="text-sm text-muted-foreground">{reserve.desc}</div>
+                      <div className="font-medium">{match.place}</div>
+                      <div className="text-sm text-muted-foreground">{match.description}</div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <LinkButton id={reserve.id} status={reserve.max+''}> </LinkButton>
+                      <LinkButton id={match.id} status={match.max+''}> </LinkButton>
                     </TableCell>
                   </TableRow>
                   ))

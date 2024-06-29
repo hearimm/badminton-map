@@ -5,7 +5,7 @@ import { supabase } from "@/lib/initSupabase";
 import { Database } from "@/supabase/types";
 import Script from "next/script";
 
-type BadmintonClub = Database['public']['Tables']['badminton_clubs']['Row'];
+type Places = Database['public']['Tables']['places']['Row'];
 
 
 interface NaverMapOneProps {
@@ -13,7 +13,6 @@ interface NaverMapOneProps {
 }
 
 export default function NaverMapOne({ id }: NaverMapOneProps) {
-  const [badmintonClub, setBadmintonClubs] = useState<BadmintonClub[]>([]);
   const [markers, setMarkers] = useState<naver.maps.Marker[]>([]);
   const mapRef = useRef<naver.maps.Map | null>(null);
 
@@ -21,10 +20,10 @@ export default function NaverMapOne({ id }: NaverMapOneProps) {
     console.log('use effect')
   }, []);
 
-  async function fetchWithId(id: string) {
+  async function fetchWithId(id: string): Promise<Places[]> {
     try {
       const { data, error } = await supabase
-        .from('badminton_clubs')
+        .from('places')
         .select('*')
         .eq('id', id)    // Correct
 

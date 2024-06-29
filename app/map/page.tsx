@@ -28,10 +28,10 @@ import Header from "@/components/header"
 import NaverMap from "@/components/naver-map";
 
 import { Database } from "@/supabase/types";
-type BadmintonClub = Database['public']['Tables']['badminton_clubs']['Row'];
+type Places = Database['public']['Tables']['places']['Row'];
 
 export default function Dashboard() {
-  const [badmintonClubs, setBadmintonClubs] = useState<BadmintonClub[]>([]);
+  const [places, setPlaces] = useState<Places[]>([]);
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -64,7 +64,7 @@ export default function Dashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                {badmintonClubs.map((club) => (
+                {places.map((club) => (
                   <TableRow key={club.id}>
                     <TableCell>
                     <div className="font-medium">
@@ -90,7 +90,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           <Card className="xl:col-span-2 h-[500px]" x-chunk="dashboard-01-chunk-5">
-            <NaverMap onBadmintonClubFetched={setBadmintonClubs}></NaverMap>
+            <NaverMap onPlacesFetched={setPlaces}></NaverMap>
           </Card>
         </div>
       </main>

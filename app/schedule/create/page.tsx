@@ -71,7 +71,7 @@ export default function InputForm() {
 
   async function insertData(param: z.infer<typeof FormSchema>) {
     const { data, error } = await supabase
-        .from('reserve')
+        .from('matches')
         .insert([param])
         .select('*');
     

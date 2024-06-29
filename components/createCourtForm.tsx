@@ -18,11 +18,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/initSupabase";
 
-import { badmintonClubSchema } from "@/schema/badmintonClubSchema";
+import { placesSchema } from "@/schema/placesSchema";
 
 export default function CreateCourtForm() {
-    const form = useForm<z.infer<typeof badmintonClubSchema>>({
-        resolver: zodResolver(badmintonClubSchema),
+    const form = useForm<z.infer<typeof placesSchema>>({
+        resolver: zodResolver(placesSchema),
         defaultValues: {
             name: "", // Ensure 'name' is not null
             address: "", // Ensure 'address' is not null
@@ -30,7 +30,7 @@ export default function CreateCourtForm() {
         },
     });
 
-    async function onSubmit(data: z.infer<typeof badmintonClubSchema>) {
+    async function onSubmit(data: z.infer<typeof placesSchema>) {
         console.log(data);
         const result = await insertData(data);
         if (result.error) {
@@ -54,9 +54,9 @@ export default function CreateCourtForm() {
         }
     }
 
-    async function insertData(param: z.infer<typeof badmintonClubSchema>) {
+    async function insertData(param: z.infer<typeof placesSchema>) {
         const { data, error } = await supabase
-            .from('badminton_clubs')
+            .from('places')
             .insert(param)
             .select('*');
 

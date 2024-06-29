@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export
-  const badmintonClubSchema = z.object({
+  const placesSchema = z.object({
     address: z.string().nullable(),
     club_id: z.number().nullable(),
     club_name: z.string().nullable(),

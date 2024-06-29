@@ -18,18 +18,18 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/initSupabase";
 import { Database } from "@/supabase/types";
-import { badmintonClubSchema } from "@/schema/badmintonClubSchema";
+import { placesSchema } from "@/schema/placesSchema";
 
-type BadmintonClub = Database['public']['Tables']['badminton_clubs']['Row'];
+type Places = Database['public']['Tables']['places']['Row'];
 
 
 type UpdateCourtFormProps = {
-  initialData: BadmintonClub;
+  initialData: Places;
 };
 
 export default function UpdateCourtForm({ initialData }: UpdateCourtFormProps) {
-  const form = useForm<z.infer<typeof badmintonClubSchema>>({
-    resolver: zodResolver(badmintonClubSchema),
+  const form = useForm<z.infer<typeof placesSchema>>({
+    resolver: zodResolver(placesSchema),
     defaultValues: {
       ...initialData,
       name: initialData.name || '', // Ensure 'name' is not null
@@ -39,7 +39,7 @@ export default function UpdateCourtForm({ initialData }: UpdateCourtFormProps) {
 
   });
 
-  async function onSubmit(data: z.infer<typeof badmintonClubSchema>) {
+  async function onSubmit(data: z.infer<typeof placesSchema>) {
     console.log(data);
     const result = await updateData(data);
     if (result.error) {
@@ -63,9 +63,9 @@ export default function UpdateCourtForm({ initialData }: UpdateCourtFormProps) {
     }
   }
 
-  async function updateData(param: z.infer<typeof badmintonClubSchema>) {
+  async function updateData(param: z.infer<typeof placesSchema>) {
     const { data, error } = await supabase
-      .from('badminton_clubs')
+      .from('places')
       .update(param)
       .eq('id', param.id)
       .select('*');

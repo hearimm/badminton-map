@@ -4,12 +4,12 @@ import UpdateCourtForm from "@/components/updateCourtForm";
 import { supabase } from "@/lib/initSupabase";
 import { Database } from "@/supabase/types";
 
-type BadmintonClub = Database['public']['Tables']['badminton_clubs']['Row'];
+type Places = Database['public']['Tables']['places']['Row'];
 
-async function fetchWithId(id: string): Promise<BadmintonClub> {
+async function fetchWithId(id: string): Promise<Places> {
     try {
         const { data, error } = await supabase
-            .from('badminton_clubs')
+            .from('places')
             .select('*')
             .eq('id', id);
 

@@ -5,15 +5,15 @@ import { supabase } from "@/lib/initSupabase";
 import { Database } from "@/supabase/types";
 import Script from "next/script";
 
-type BadmintonClub = Database['public']['Tables']['badminton_clubs']['Row'];
+type Places = Database['public']['Tables']['places']['Row'];
 
 
 interface NaverMapProps {
-  onBadmintonClubFetched: (badmintonClubs: BadmintonClub[]) => void;
+  onPlacesFetched: (badmintonClubs: Places[]) => void;
 }
 
-export default function NaverMap({ onBadmintonClubFetched }: NaverMapProps) {
-  const [badmintonClub, setBadmintonClubs] = useState<BadmintonClub[]>([]);
+export default function NaverMap({ onPlacesFetched: onPlacesFetched }: NaverMapProps) {
+  const [places, setPlaces] = useState<Places[]>([]);
   const [markers, setMarkers] = useState<naver.maps.Marker[]>([]);
   const mapRef = useRef<naver.maps.Map | null>(null);
 
@@ -24,7 +24,7 @@ export default function NaverMap({ onBadmintonClubFetched }: NaverMapProps) {
   async function fetchWithinBounds(bounds: naver.maps.Bounds) {
     try {
       const { data, error } = await supabase
-        .from('badminton_clubs')
+        .from('places')
         .select('*')
         .gte('latitude', bounds.minY())
         .lte('latitude', bounds.maxY())
@@ -78,7 +78,7 @@ export default function NaverMap({ onBadmintonClubFetched }: NaverMapProps) {
       });
 
 
-      onBadmintonClubFetched(data);
+      onPlacesFetched(data);
       setMarkers(newMarkers);
     });
   }
