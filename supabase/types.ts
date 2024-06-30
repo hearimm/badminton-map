@@ -1,3 +1,4 @@
+
 export type Json =
   | string
   | number
@@ -167,7 +168,7 @@ export type Database = {
           max: number | null
           modified_at: string | null
           modified_user: string | null
-          place: string | null
+          place_id: number | null
           time: string | null
         }
         Insert: {
@@ -182,7 +183,7 @@ export type Database = {
           max?: number | null
           modified_at?: string | null
           modified_user?: string | null
-          place?: string | null
+          place_id?: number | null
           time?: string | null
         }
         Update: {
@@ -197,13 +198,62 @@ export type Database = {
           max?: number | null
           modified_at?: string | null
           modified_user?: string | null
-          place?: string | null
+          place_id?: number | null
           time?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "matches_manager_id_fkey"
             columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participants: {
+        Row: {
+          created_at: string
+          id: number
+          match_id: number
+          modified_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          match_id: number
+          modified_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          match_id?: number
+          modified_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
