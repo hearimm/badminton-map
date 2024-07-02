@@ -43,16 +43,16 @@ type NaverMapOneComponentProps = {
 
 function NaverMapOneComponent(props: NaverMapOneComponentProps) {
     const { data } = props;
-    if (data?.place) {
+    if (data?.place_id) {
         return (
-            <NaverMapOne id={data.place}></NaverMapOne>
+            <NaverMapOne id={data.place_id + ''}></NaverMapOne>
         )
     } else {
         return
     }
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function ScheduleDetailPage({ params }: { params: { id: string } }) {
 
     const data = await fetchWithId(params.id)
     if (!data) {
@@ -78,7 +78,7 @@ export default async function Page({ params }: { params: { id: string } }) {
                         {data.created_at}<br/>
                         {data.date}<br/>
                         {data.time}<br/>
-                        {data.desc}<br/>
+                        {data.description}<br/>
                     </div>
                 </CardContent>
             </Card>

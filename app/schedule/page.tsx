@@ -46,7 +46,7 @@ async function fetchMatches(): Promise<Matches[]> {
   }
 }
 
-export default function Schedule() {
+export default function ScheduleListPage() {
   const [matches, setMatches] = useState<Matches[]>([]);
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function Schedule() {
                       <div className="font-medium">{match.time}</div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{match.place}</div>
+                      <div className="font-medium">{match.place_id}</div>
                       <div className="text-sm text-muted-foreground">{match.description}</div>
                     </TableCell>
                     <TableCell className="text-right">

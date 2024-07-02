@@ -35,7 +35,7 @@ FormSchema.partial({
   desc: true,
 });
 
-export default function InputForm() {
+export default function ScheduleCreatePage() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
