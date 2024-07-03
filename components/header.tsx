@@ -45,6 +45,10 @@ export default function Header() {
     }
   }
 
+  const handleProfile = () => {
+    router.push('/profile')  // Redirect to profile page
+  }
+  
   const handleLogin = async () => {
     router.push('/login')  // Redirect to the login page
   }
@@ -121,7 +125,7 @@ export default function Header() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleProfile}>Profile</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
