@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -346,6 +345,68 @@ export type Database = {
           type?: string | null
         }
         Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          age_group: string | null
+          avatar_url: string | null
+          bio: string | null
+          city: string
+          created_at: string | null
+          display_name: string
+          email: string
+          experience_years: number
+          gender: string | null
+          id: number
+          preferred_time_slots: string[] | null
+          privacy_settings: Json | null
+          skill_level: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          age_group?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          city: string
+          created_at?: string | null
+          display_name: string
+          email: string
+          experience_years: number
+          gender?: string | null
+          id?: number
+          preferred_time_slots?: string[] | null
+          privacy_settings?: Json | null
+          skill_level: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          age_group?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string
+          created_at?: string | null
+          display_name?: string
+          email?: string
+          experience_years?: number
+          gender?: string | null
+          id?: number
+          preferred_time_slots?: string[] | null
+          privacy_settings?: Json | null
+          skill_level?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
