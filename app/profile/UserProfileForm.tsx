@@ -74,6 +74,7 @@ export default function UserProfileForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      avatar_url: "",
       display_name: "",
       city: "",
       skill_level: "",
@@ -98,7 +99,11 @@ export default function UserProfileForm() {
         if (error) {
           console.error('Error fetching profile:', error)
         } else if (data) {
-          form.reset(data)
+          console.log(user);
+          console.log(data);
+          const avatar_url = data.avatar_url || user?.user_metadata?.avatar_url;
+          const display_name = data.display_name || user?.user_metadata?.preferred_username;
+          form.reset({...data, avatar_url, display_name})
         }
       }
     }
