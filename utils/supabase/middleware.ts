@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const privatePaths = ['/court/create', '/court/(.*)/edit', '/schedule/create'];
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -31,11 +33,12 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  const { data: user, error } = await supabase.auth.getUser()
+  const { data, error } = await supabase.auth.getUser()
+  const { user } = data;
 
-  if (!user) {
+  if (!user && privatePaths.some(path => new RegExp(path).test(request.nextUrl.pathname))) {
     // no user, potentially respond by redirecting the user to the login page
-    return NextResponse.redirect('/login')
+    return NextResponse.rewrite(new URL('/login', request.url));
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
