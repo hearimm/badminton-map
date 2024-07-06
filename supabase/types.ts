@@ -121,36 +121,128 @@ export type Database = {
         }
         Relationships: []
       }
-      locations: {
+      club_place_mapping: {
         Row: {
-          created_at: string
-          desc: Json | null
-          id: number
-          lat: number | null
-          lng: number | null
-          name: string | null
-          type: string | null
-          updated_at: string | null
+          additional_info: Json | null
+          club_id: number
+          created_at: string | null
+          created_user: string
+          mapping_id: number
+          modified_at: string | null
+          modified_user: string
+          place_id: number
         }
         Insert: {
-          created_at?: string
-          desc?: Json | null
-          id?: number
-          lat?: number | null
-          lng?: number | null
-          name?: string | null
-          type?: string | null
-          updated_at?: string | null
+          additional_info?: Json | null
+          club_id: number
+          created_at?: string | null
+          created_user: string
+          mapping_id?: number
+          modified_at?: string | null
+          modified_user: string
+          place_id: number
         }
         Update: {
-          created_at?: string
-          desc?: Json | null
-          id?: number
-          lat?: number | null
-          lng?: number | null
-          name?: string | null
-          type?: string | null
-          updated_at?: string | null
+          additional_info?: Json | null
+          club_id?: number
+          created_at?: string | null
+          created_user?: string
+          mapping_id?: number
+          modified_at?: string | null
+          modified_user?: string
+          place_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_club_id"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["club_id"]
+          },
+          {
+            foreignKeyName: "fk_place_id"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["place_id"]
+          },
+        ]
+      }
+      club_place_schedule: {
+        Row: {
+          created_at: string | null
+          created_user: string
+          day_of_week: number
+          mapping_id: number
+          modified_at: string | null
+          modified_user: string
+          operation_end_time: string
+          operation_start_time: string
+          schedule_id: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_user: string
+          day_of_week: number
+          mapping_id: number
+          modified_at?: string | null
+          modified_user: string
+          operation_end_time: string
+          operation_start_time: string
+          schedule_id?: number
+        }
+        Update: {
+          created_at?: string | null
+          created_user?: string
+          day_of_week?: number
+          mapping_id?: number
+          modified_at?: string | null
+          modified_user?: string
+          operation_end_time?: string
+          operation_start_time?: string
+          schedule_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_mapping_id"
+            columns: ["mapping_id"]
+            isOneToOne: false
+            referencedRelation: "club_place_mapping"
+            referencedColumns: ["mapping_id"]
+          },
+        ]
+      }
+      clubs: {
+        Row: {
+          additional_info: Json | null
+          club_id: number
+          club_name: string
+          contact_info: string | null
+          created_at: string | null
+          created_user: string
+          modified_at: string | null
+          modified_user: string
+        }
+        Insert: {
+          additional_info?: Json | null
+          club_id?: number
+          club_name: string
+          contact_info?: string | null
+          created_at?: string | null
+          created_user: string
+          modified_at?: string | null
+          modified_user: string
+        }
+        Update: {
+          additional_info?: Json | null
+          club_id?: number
+          club_name?: string
+          contact_info?: string | null
+          created_at?: string | null
+          created_user?: string
+          modified_at?: string | null
+          modified_user?: string
         }
         Relationships: []
       }
@@ -219,7 +311,7 @@ export type Database = {
             columns: ["place_id"]
             isOneToOne: false
             referencedRelation: "places"
-            referencedColumns: ["id"]
+            referencedColumns: ["place_id"]
           },
         ]
       }
@@ -267,6 +359,48 @@ export type Database = {
       }
       places: {
         Row: {
+          additional_info: Json | null
+          address: string | null
+          created_at: string | null
+          created_user: string
+          latitude: number | null
+          longitude: number | null
+          modified_at: string | null
+          modified_user: string
+          place_id: number
+          place_name: string
+          place_type: string
+        }
+        Insert: {
+          additional_info?: Json | null
+          address?: string | null
+          created_at?: string | null
+          created_user: string
+          latitude?: number | null
+          longitude?: number | null
+          modified_at?: string | null
+          modified_user: string
+          place_id?: number
+          place_name: string
+          place_type: string
+        }
+        Update: {
+          additional_info?: Json | null
+          address?: string | null
+          created_at?: string | null
+          created_user?: string
+          latitude?: number | null
+          longitude?: number | null
+          modified_at?: string | null
+          modified_user?: string
+          place_id?: number
+          place_name?: string
+          place_type?: string
+        }
+        Relationships: []
+      }
+      places_backup: {
+        Row: {
           address: string | null
           club_id: number | null
           club_name: string | null
@@ -282,7 +416,7 @@ export type Database = {
           field2: string | null
           field3: string | null
           flooring: string | null
-          id: number
+          id: number | null
           latitude: number | null
           longitude: number | null
           map_link: string | null
@@ -310,7 +444,7 @@ export type Database = {
           field2?: string | null
           field3?: string | null
           flooring?: string | null
-          id?: number
+          id?: number | null
           latitude?: number | null
           longitude?: number | null
           map_link?: string | null
@@ -338,7 +472,7 @@ export type Database = {
           field2?: string | null
           field3?: string | null
           flooring?: string | null
-          id?: number
+          id?: number | null
           latitude?: number | null
           longitude?: number | null
           map_link?: string | null
