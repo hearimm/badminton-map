@@ -165,6 +165,8 @@ export type Database = {
           manager_id: string | null
           match_time: string | null
           max: number | null
+          max_level: number
+          min_level: number
           modified_at: string | null
           modified_user: string | null
           place_id: number | null
@@ -180,6 +182,8 @@ export type Database = {
           manager_id?: string | null
           match_time?: string | null
           max?: number | null
+          max_level?: number
+          min_level?: number
           modified_at?: string | null
           modified_user?: string | null
           place_id?: number | null
@@ -195,6 +199,8 @@ export type Database = {
           manager_id?: string | null
           match_time?: string | null
           max?: number | null
+          max_level?: number
+          min_level?: number
           modified_at?: string | null
           modified_user?: string | null
           place_id?: number | null
@@ -357,12 +363,11 @@ export type Database = {
           email: string
           experience_years: number
           gender: string | null
-          id: number
-          preferred_time_slots: string[] | null
+          preferred_time_slots: string | null
           privacy_settings: Json | null
           skill_level: string
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           age_group?: string | null
@@ -374,12 +379,11 @@ export type Database = {
           email: string
           experience_years: number
           gender?: string | null
-          id?: number
-          preferred_time_slots?: string[] | null
+          preferred_time_slots?: string | null
           privacy_settings?: Json | null
           skill_level: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           age_group?: string | null
@@ -391,18 +395,17 @@ export type Database = {
           email?: string
           experience_years?: number
           gender?: string | null
-          id?: number
-          preferred_time_slots?: string[] | null
+          preferred_time_slots?: string | null
           privacy_settings?: Json | null
           skill_level?: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "user_profiles_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },

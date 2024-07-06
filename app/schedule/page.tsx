@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, FC } from "react"
 import Link from "next/link"
-import { ChevronLeft, ChevronRight, MapPin, Users, Loader2, Calendar, Plus, Filter } from "lucide-react"
-import { format, addDays, startOfWeek } from 'date-fns'
+import { MapPin, Users, Loader2, Calendar, Plus, Filter } from "lucide-react"
+import { format } from 'date-fns'
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,6 +18,8 @@ import {
 import Header from "@/components/header"
 import { supabase } from "@/lib/initSupabase"
 import { Database } from "@/supabase/types"
+
+import WeekNavigation from "@/components/weekNavigation"
 
 type Matches = Database['public']['Tables']['matches']['Row'] & {
   places: { name: string } | null
@@ -40,65 +42,26 @@ async function fetchMatches(date: Date): Promise<Matches[]> {
   }
 }
 
-const DateButton = ({ date, isSelected, onClick }: { date: Date; isSelected: boolean; onClick: () => void }) => (
-  <Button
-    variant={isSelected ? "default" : "ghost"}
-    className={`flex-col items-center justify-center h-16 ${isSelected ? 'bg-black text-white' : ''}`}
-    onClick={onClick}
-  >
-    <div className="text-sm">{format(date, 'E')}</div>
-    <div className="text-lg font-bold">{format(date, 'd')}</div>
-  </Button>
-)
+const levelRanges = [
+  { name: "랠리 가능자", minLevel: 1, maxLevel: 10 },
+  { name: "룰 숙지자", minLevel: 11, maxLevel: 20 },
+  { name: "왕왕초심", minLevel: 21, maxLevel: 30 },
+  { name: "왕초심", minLevel: 31, maxLevel: 40 },
+  { name: "초심", minLevel: 41, maxLevel: 50 },
+  { name: "D조", minLevel: 51, maxLevel: 60 },
+  { name: "C조", minLevel: 61, maxLevel: 70 },
+  { name: "B조", minLevel: 71, maxLevel: 80 },
+  { name: "A조", minLevel: 81, maxLevel: 100 },
+]
 
-export default function ScheduleListPage() {
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [matches, setMatches] = useState<Matches[]>([])
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
-  const [filterType, setFilterType] = useState<string>('all')
-  
-  useEffect(() => {
-    const getMatches = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        let data = await fetchMatches(selectedDate)
-        if (filterType && filterType !== 'all') {
-          data = data.filter(match => match.type === filterType)
-        }
-        setMatches(data)
-      } catch (err) {
-        console.error('Failed to fetch matches:', err)
-        setError('Failed to fetch matches. Please try again.')
-      } finally {
-        setLoading(false)
-      }
-    }
-    getMatches()
-  }, [selectedDate, filterType])
-
-  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
-
-
-// 모임 유형에 따른 이모지 매핑
-const typeEmoji: { [key: string]: string } = {
-  "운동/스포츠": "🏸",
-  "스터디": "📚",
-  "친목": "🍻",
-  // 더 많은 유형을 추가할 수 있습니다
+interface MatchCardProps {
+  match: Matches;
 }
 
-// 색상 생성 함수
-const generateColor = (id: number) => {
-  const hue = id * 137.508; // 황금각을 사용하여 고르게 분포된 색상 생성
-  return `hsl(${hue % 360}, 70%, 80%)`;
-}
-
-// 매치 카드 컴포넌트
-const MatchCard = ({ match }: { match: Matches }) => {
+const MatchCard: FC<MatchCardProps> = ({ match }) => {
+  const typeEmoji = { "운동/스포츠": "🏸", "스터디": "📚", "친목": "🍻" }
   const emoji = typeEmoji[match.type] || "🏸"
+  const generateColor = (id: number) => `hsl(${(id * 137.508) % 360}, 70%, 80%)`
   const backgroundColor = generateColor(match.id)
 
   return (
@@ -132,43 +95,90 @@ const MatchCard = ({ match }: { match: Matches }) => {
   )
 }
 
+const ScheduleListPage: FC = () => {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [filteredMatches, setFilteredMatches] = useState<Matches[]>([])
+  const [matches, setMatches] = useState<Matches[]>([])
+
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [levelFitler, setLevelFitler] = useState<string>('all')
+  
+  useEffect(() => {
+    const getMatches = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await fetchMatches(selectedDate)
+        let filteredMatchesData = data;
+        setMatches(data);
+
+        if (levelFitler && levelFitler !== 'all') {
+          const intLevelFitler = parseInt(levelFitler)
+          filteredMatchesData = data.filter(match =>  match.min_level <= intLevelFitler && match.max_level >= intLevelFitler)
+        }
+        setFilteredMatches(filteredMatchesData);
+
+      } catch (err) {
+        console.error('Failed to fetch matches:', err)
+        setError('Failed to fetch matches. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    getMatches()
+  }, [selectedDate])
+
+  useEffect(() => {
+    const getFilteredMatches = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = matches;
+        let filteredMatchesData = data;
+
+        if (levelFitler && levelFitler !== 'all') {
+          const intLevelFitler = parseInt(levelFitler)
+          filteredMatchesData = data.filter(match => match.min_level <= intLevelFitler && match.max_level >= intLevelFitler)
+        }
+        setFilteredMatches(filteredMatchesData);
+      } catch (err) {
+        console.error('Failed to fetch matches:', err)
+        setError('Failed to fetch matches. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    getFilteredMatches()
+  }, [levelFitler, matches])
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header />
       <main className="flex flex-1 flex-col p-4">
         <h1 className="text-2xl font-bold mb-4">다가오는 정기모임</h1>
-        <div className="flex justify-between items-center mb-4">
-          <Button variant="ghost" size="icon" onClick={() => setWeekStart(addDays(weekStart, -7))}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 grid grid-cols-7 gap-1">
-            {weekDates.map((date) => (
-              <DateButton
-                key={date.toISOString()}
-                date={date}
-                isSelected={format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')}
-                onClick={() => setSelectedDate(date)}
-              />
-            ))}
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => setWeekStart(addDays(weekStart, 7))}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        {/* 필터와 생성 버튼 */}
+        {/**<
+          WeekNavigation selectedDate={selectedDate} setSelectedDate={setSelectedDate} /> 
+          */}
+        <WeekNavigation 
+        selectedDate={selectedDate} 
+        setSelectedDate={(date) => {
+          setSelectedDate(date);
+          // 여기서 필요한 경우 matches를 다시 불러오는 로직을 추가할 수 있습니다.
+        }} 
+      />
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
             <Filter className="h-4 w-4 mr-2" />
-            <Select onValueChange={(value) => setFilterType(value)}>
+            <Select onValueChange={(value) => setLevelFitler(value)}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="모임 유형 선택" />
+                <SelectValue placeholder="레벨 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">모든 유형</SelectItem>
-                <SelectItem value="운동/스포츠">운동/스포츠</SelectItem>
-                <SelectItem value="스터디">스터디</SelectItem>
-                <SelectItem value="친목">친목</SelectItem>
+                <SelectItem value="all">누구나</SelectItem>
+                {levelRanges.map(o => 
+                  <SelectItem key={o.minLevel} value={o.minLevel+''}>{o.name}</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -185,11 +195,11 @@ const MatchCard = ({ match }: { match: Matches }) => {
           </div>
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
-        ) : matches.length === 0 ? (
+        ) : filteredMatches.length === 0 ? (
           <div className="text-center text-gray-500">해당 날짜의 모임이 없습니다.</div>
         ) : (
           <div className="space-y-4">
-            {matches.map((match) => (
+            {filteredMatches.map((match) => (
               <MatchCard key={match.id} match={match} />
             ))}
           </div>
@@ -198,3 +208,5 @@ const MatchCard = ({ match }: { match: Matches }) => {
     </div>
   )
 }
+
+export default ScheduleListPage;
