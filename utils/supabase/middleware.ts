@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const privatePaths = ['/court/create', '/court/(.*)/edit', '/schedule/create'];
+const privatePaths = ['/court/create', '/court/(.*)/edit', '/match/create'];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({

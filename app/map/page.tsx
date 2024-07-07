@@ -65,20 +65,20 @@ export default function Dashboard() {
                 </TableHeader>
                 <TableBody>
                 {places.map((club) => (
-                  <TableRow key={club.id}>
+                  <TableRow key={club.place_id}>
                     <TableCell>
                     <div className="font-medium">
-                      <Badge>{club.type}</Badge>{club.name}
+                      <Badge>{club.place_type}</Badge>{club.place_name}
                     </div>
                     <div className="hidden text-sm text-muted-foreground md:inline">
-                      {club.schedule} <br/>
-                      {club.club_name}
+                      {club.additional_info?.schedule} <br/>
+                      {club.additional_info?.club_name}
                     </div>
                     
                     </TableCell>
                     <TableCell>
                     <Button asChild size="sm" className="ml-auto gap-1">
-                      <Link href={`/court/${club.id}`}>
+                      <Link href={`/court/${club.place_id}`}>
                         <ArrowUpRight className="h-4 w-4" />
                       </Link>
                     </Button>

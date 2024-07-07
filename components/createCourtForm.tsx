@@ -1,210 +1,308 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/initSupabase";
 import { placesSchema } from "@/schema/placesSchema";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createClient } from "@/utils/supabase/client";
 
+const formSchema = placesSchema.extend({
+  additionalInfoArray: z.array(
+    z.object({
+      key: z.string(),
+      value: z.string(),
+    })
+  ),
+});
 
-// 필드 정보 정의
-const fields = [
-    { name: "type", label: "Type", description: "Type of the club." },
-    { name: "name", label: "Name", description: "This is the name of the club.", required: true },
-    { name: "map_link", label: "Map Link", description: "Link to the map." },
-    { name: "address", label: "Address", description: "This is the address of the club." },
-    { name: "latitude", label: "Latitude", description: "Latitude of the club location." },
-    { name: "longitude", label: "Longitude", description: "Longitude of the club location." },
-    { name: "courts", label: "Courts", description: "Number of courts available." },
-    { name: "contact", label: "Contact", description: "This is the contact information." },
-    { name: "schedule", label: "Schedule", description: "Club schedule." },
-    { name: "fee", label: "Fee", description: "The fee for the places." },
-    { name: "flooring", label: "Flooring", description: "Type of flooring." },
-    { name: "club_id", label: "Club ID", description: "This is the club ID." },
-    { name: "club_name", label: "Club Name", description: "This is the club name." },
-    { name: "club_review1", label: "Club Review 1", description: "This is the first club review." },
-    { name: "club_review2", label: "Club Review 2", description: "This is the second club review." },
-    { name: "club_review3", label: "Club Review 3", description: "This is the third club review." },
-    { name: "club_website", label: "Club Website", description: "This is the club website." },
-    { name: "field1", label: "Field 1", description: "Additional field 1." },
-    { name: "field2", label: "Field 2", description: "Additional field 2." },
-    { name: "field3", label: "Field 3", description: "Additional field 3." },
-    { name: "other_link1", label: "Other Link 1", description: "Additional link 1." },
-    { name: "other_link2", label: "Other Link 2", description: "Additional link 2." },
-    { name: "other_link3", label: "Other Link 3", description: "Additional link 3." },
-    { name: "others", label: "Others", description: "Other information." },
+const mainFields = [
+  { name: "place_name", label: "Place Name", description: "Name of the place", required: true },
+  { name: "place_type", label: "Place Type", description: "Type of the place", required: true },
+  { name: "address", label: "Address", description: "Address of the place", readOnly: true },
 ];
 
-// 기본값 객체 타입 정의
-type DefaultValues = {
-    [key: string]: string | number | null;
-};
+export default function CreateCourtForm() {
+    const [isLoading, setIsLoading] = useState(false);
+    const [addressSearchInput, setAddressSearchInput] = useState("");
+  
+    const form = useForm<z.infer<typeof formSchema>>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        place_name: "",
+        place_type: "",
+        address: "",
+        latitude: null,
+        longitude: null,
+        additionalInfoArray: [],
+      },
+    });
+  
+    const { fields, append, remove } = useFieldArray({
+      control: form.control,
+      name: "additionalInfoArray",
+    });
+  
+    const lookupAddress = async () => {
+      setIsLoading(true);
+  
+      if (!addressSearchInput) {
+        toast({ title: "Error", description: "Please enter an address to search" });
+        setIsLoading(false);
+        return;
+      }
+  
+      try {
+        const headers = {
+          'X-NCP-APIGW-API-KEY-ID': process.env.NEXT_PUBLIC_NCP_CLIENT_ID || '',
+          'X-NCP-APIGW-API-KEY': process.env.NEXT_PUBLIC_NCP_CLIENT_SECRET || '',
+        }
+        const url = `/api/geocode?query=${encodeURIComponent(addressSearchInput)}`
+        const response = await fetch(url, {headers});
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  
+        const data = await response.json();
+        console.log(data)
+        if (data.addresses && data.addresses.length > 0) {
+          const { x, y, roadAddress } = data.addresses[0];
+          form.setValue('address', roadAddress);
+          form.setValue('latitude', parseFloat(y));
+          form.setValue('longitude', parseFloat(x));
+          toast({ title: "Success", description: "Address information retrieved successfully" });
+        } else {
+          toast({ title: "Error", description: "Could not find location information for the given address" });
+        }
+      } catch (error) {
+        console.error('Error looking up address:', error);
+        toast({ title: "Error", description: "An error occurred while looking up the address" });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-// 기본값 설정
-const defaultValues: DefaultValues = fields.reduce((acc, field) => {
-    acc[field.name] = "";
-    return acc;
-}, {} as DefaultValues);
-
-// Naver 지도 API 타입 선언
-declare global {
-    interface Window {
-      naver: any;
-    }
-  }
-  
-  export default function CreateCourtForm() {
-      const [isLoading, setIsLoading] = useState(false);
-  
-      const form = useForm<z.infer<typeof placesSchema>>({
-          resolver: zodResolver(placesSchema),
-          defaultValues,
-      });
-  
-      const lookupAddress = async () => {
-          setIsLoading(true);
-          const address = form.getValues('address');
-  
-          if (!address) {
-              toast({
-                  title: "Error",
-                  description: "Please enter an address",
-              });
-              setIsLoading(false);
-              return;
+    async function onSubmit(data: z.infer<typeof formSchema>) {
+        setIsLoading(true);
+        try {
+          const additionalInfo = Object.fromEntries(
+            data.additionalInfoArray.map(({ key, value }) => [key, value])
+          );
+      
+          // 현재 로그인한 사용자의 ID를 가져옵니다.
+          // 실제 구현에서는 이 부분을 인증 시스템에 맞게 수정해야 합니다.
+          const supabase = await createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          const userId = user?.id;
+      
+          if (!userId) {
+            throw new Error("User not authenticated");
           }
-  
-          try {
-            console.log('address',address);
-            const headers = {
-                'X-NCP-APIGW-API-KEY-ID': process.env.NEXT_PUBLIC_NCP_CLIENT_ID || '',
-                'X-NCP-APIGW-API-KEY': process.env.NEXT_PUBLIC_NCP_CLIENT_SECRET || '',
-            }
-            console.log(headers);
-              const response = await fetch(`/api/geocode?query=${encodeURIComponent(address)}`
-              ,{
-                  headers
-              });
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
-              console.log(response);
-  
-              const data = await response.json();
-  
-              if (data.addresses && data.addresses.length > 0) {
-                  const { x, y } = data.addresses[0];
-                  form.setValue('latitude', y);
-                  form.setValue('longitude', x);
-                  form.setValue('map_link', `https://map.naver.com/v5/search/${encodeURIComponent(address)}`);
-  
-                  toast({
-                      title: "Success",
-                      description: "Address information retrieved successfully",
-                  });
-              } else {
-                  toast({
-                      title: "Error",
-                      description: "Could not find location information for the given address",
-                  });
-              }
-          } catch (error) {
-              console.error('Error looking up address:', error);
-              toast({
-                  title: "Error",
-                  description: "An error occurred while looking up the address",
-              });
-          } finally {
-              setIsLoading(false);
-          }
-      };
-  
-      async function onSubmit(data: z.infer<typeof placesSchema>) {
-          console.log("Form submitted with data:", data);
-          const result = await insertData(data);
-          if (result.error) {
-              toast({
-                  title: "Error",
-                  description: (
-                      <pre className="mt-2 w-[340px] rounded-md bg-red-500 p-4">
-                          <code className="text-white">{JSON.stringify(result.error, null, 2)}</code>
-                      </pre>
-                  ),
-              });
-          } else {
-              toast({
-                  title: "Creation successful",
-                  description: (
-                      <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                          <code className="text-white">{JSON.stringify(result.data, null, 2)}</code>
-                      </pre>
-                  ),
-              });
-          }
+      
+          const currentTime = new Date().toISOString();
+      
+          const submitData = {
+            ...data,
+            additional_info: additionalInfo,
+            created_user: userId,
+            modified_user: userId,
+            created_at: currentTime,
+            modified_at: currentTime,
+          };
+      
+          delete submitData.additionalInfoArray;
+          
+          console.log(submitData);
+          const { data: insertedData, error } = await supabase
+            .from('places')
+            .insert(submitData)
+            .select('*')
+            .single();
+      
+          if (error) throw error;
+      
+          toast({
+            title: "Place created successfully",
+            description: "The new place has been added to the database.",
+          });
+        } catch (error) {
+          console.error('Error inserting data:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create place. Please try again.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
       }
 
-    async function insertData(param: z.infer<typeof placesSchema>) {
-        try {
-            const { data, error } = await supabase
-                .from('places')
-                .insert(param)
-                .select('*');
-            
-            console.log('Insert Result:', data, 'Error:', error);
-            return { data, error };
-        } catch (error) {
-            console.error('Error inserting data:', error);
-            return { data: null, error };
-        }
+    const onError = (error: any) => {
+        console.error('Error inserting data:', error);
+        toast({
+            title: "Error",
+            description: "Failed to create place. Please try again.",
+            variant: "destructive",
+        });
     }
 
-    function onError(errors: any) {
-        console.log("Validation errors:", errors);
-    }
-
-    return (
-        <div className="space-y-6">
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit, onError)} className="w-2/3 space-y-6">
-                    {fields.map((field) => (
-                        <FormField
-                            key={field.name}
-                            control={form.control}
-                            name={field.name as keyof z.infer<typeof placesSchema>}
-                            render={({ field: formField }) => (
-                                <FormItem>
-                                    <FormLabel>{field.label}</FormLabel>
-                                    <FormControl>
-                                        <Input {...formField} value={formField.value ?? ''} />
-                                    </FormControl>
-                                    <FormDescription>
-                                        {field.description}
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    ))}
+  return (
+    <Card className="w-full max-w-3xl mx-auto">
+      <CardHeader>
+        <CardTitle>Create New Place</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
+            <Tabs defaultValue="main" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="main">Main Information</TabsTrigger>
+                <TabsTrigger value="additional">Additional Information</TabsTrigger>
+              </TabsList>
+              <TabsContent value="main">
+                {mainFields.map((field) => (
+                  <FormField
+                    key={field.name}
+                    control={form.control}
+                    name={field.name as keyof z.infer<typeof formSchema>}
+                    render={({ field: formField }) => (
+                      <FormItem>
+                        <FormLabel>{field.label}</FormLabel>
+                        <FormControl>
+                          <Input readOnly={field?.readOnly || false} {...formField} />
+                        </FormControl>
+                        <FormDescription>{field.description}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+                
+                <div className="space-y-2">
+                  <FormLabel>Address Search</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <Input 
+                      value={addressSearchInput}
+                      onChange={(e) => setAddressSearchInput(e.target.value)}
+                      placeholder="Enter address to search"
+                    />
                     <Button type="button" onClick={lookupAddress} disabled={isLoading}>
-                        {isLoading ? 'Looking up...' : 'Lookup Address'}
+                      {isLoading ? 'Searching...' : 'Search'}
                     </Button>
-                    <Button type="submit">Create Court</Button>
-                </form>
-            </Form>
-        </div>
+                  </div>
+                  <FormDescription>
+                    Search for an address to automatically fill the address, latitude, and longitude fields.
+                  </FormDescription>
+                </div>
+
+                <div className="space-y-2">
+                    <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>주소</FormLabel>
+                        <FormControl>
+                            <Input readOnly={true} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <FormField
+                    control={form.control}
+                    name="latitude"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>latitude</FormLabel>
+                        <FormControl>
+                            <Input readOnly={true} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <FormField
+                    control={form.control}
+                    name="longitude"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>longitude</FormLabel>
+                        <FormControl>
+                            <Input readOnly={true} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="additional">
+                <div className="space-y-4">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end space-x-2">
+                      <FormField
+                        control={form.control}
+                        name={`additionalInfoArray.${index}.key`}
+                        render={({ field }) => (
+                          <FormItem className="flex-grow">
+                            <FormLabel>Key</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`additionalInfoArray.${index}.value`}
+                        render={({ field }) => (
+                          <FormItem className="flex-grow">
+                            <FormLabel>Value</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="button" variant="destructive" onClick={() => remove(index)}>
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => append({ key: "", value: "" })}
+                  >
+                    Add Field
+                  </Button>
+                </div>
+              </TabsContent>
+              </Tabs>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create Place"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     );
-}
+  }

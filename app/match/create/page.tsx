@@ -144,7 +144,7 @@ export default function ScheduleCreatePage() {
         title: "Match created successfully",
         description: "Your new match has been added to the schedule.",
       })
-      router.push('/schedule')
+      router.push('/match')
     } catch (error) {
       console.error("Error creating match:", error)
       toast({

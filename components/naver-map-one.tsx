@@ -25,7 +25,7 @@ export default function NaverMapOne({ id }: NaverMapOneProps) {
       const { data, error } = await supabase
         .from('places')
         .select('*')
-        .eq('id', id)    // Correct
+        .eq('place_id', id)    // Correct
 
       if (error) throw error;
 
@@ -46,7 +46,7 @@ export default function NaverMapOne({ id }: NaverMapOneProps) {
       const newMarkers = data.map(location => {
         const marker = new naver.maps.Marker({
           position: new naver.maps.LatLng(location.latitude!, location.longitude!),
-          title: location.name || '',
+          title: location.place_name || '',
           map: map
         })
 
@@ -54,7 +54,7 @@ export default function NaverMapOne({ id }: NaverMapOneProps) {
 
         var contentString = [
           '<div class="iw_inner">',
-          `   <h3>${location.name}</h3>`,
+          `   <h3>${location.place_name}</h3>`,
           `   <p>${location.address}<br />`,
           '   </p>',
           '</div>'

@@ -38,8 +38,8 @@ export default function PlaceSearch({ onSelect }: PlaceSearchProps) {
   const searchPlaces = async (term: string) => {
     const { data, error } = await supabase
       .from('places')
-      .select('id, name')
-      .ilike('name', `%${term}%`)
+      .select('place_id, place_name')
+      .ilike('place_name', `%${term}%`)
       .limit(10)
 
     if (error) {

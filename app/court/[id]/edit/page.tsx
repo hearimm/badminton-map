@@ -11,7 +11,7 @@ async function fetchWithId(id: string): Promise<Places> {
         const { data, error } = await supabase
             .from('places')
             .select('*')
-            .eq('id', id);
+            .eq('place_id', id);
 
         if (error) throw error;
 
@@ -32,7 +32,7 @@ export default async function EditPage({ params }: { params: { id: string } }) {
         <div className="flex min-h-screen w-full flex-col">
             <Header />
             <div id="mainWrap" className="mx-10">
-                <h1 className="text-2xl font-bold mb-4">Edit Court {data.name}</h1>
+                <h1 className="text-2xl font-bold mb-4">Edit Court {data.place_name}</h1>
                 <UpdateCourtForm initialData={data} />
             </div>
         </div>

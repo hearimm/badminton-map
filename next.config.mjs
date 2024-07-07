@@ -13,7 +13,7 @@ const nextConfig = {
       // Basic redirect
       {
         source: '/',
-        destination: '/schedule',
+        destination: '/match',
         permanent: true,
       },
     ]

@@ -29,7 +29,7 @@ async function fetchMatches(date: Date): Promise<Matches[]> {
   try {
     const { data, error } = await supabase
       .from('matches')
-      .select('*, places(name)')
+      .select('*, places(place_name)')
       .eq('date', format(date, 'yyyy-MM-dd'))
       .order('time', { ascending: true })
 
@@ -65,7 +65,7 @@ const MatchCard: FC<MatchCardProps> = ({ match }) => {
   const backgroundColor = generateColor(match.id)
 
   return (
-    <Link key={match.id} href={`/schedule/${match.id}`} passHref>
+    <Link key={match.id} href={`/match/${match.id}`} passHref>
       <Card className="overflow-hidden mt-4">
         <CardContent className="p-0">
           <div 
@@ -78,7 +78,7 @@ const MatchCard: FC<MatchCardProps> = ({ match }) => {
             <h3 className="text-lg font-bold mb-2">{match.description || '모임 제목'}</h3>
             <div className="flex items-center text-gray-600 mb-2">
               <MapPin className="h-4 w-4 mr-1" />
-              <span>{match.places?.name || '장소 미정'}</span>
+              <span>{match.places?.place_name || '장소 미정'}</span>
             </div>
             <div className="flex items-center text-gray-600 mb-2">
               <Calendar className="h-4 w-4 mr-1" />
@@ -95,7 +95,7 @@ const MatchCard: FC<MatchCardProps> = ({ match }) => {
   )
 }
 
-const ScheduleListPage: FC = () => {
+const MatchListPage: FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filteredMatches, setFilteredMatches] = useState<Matches[]>([])
@@ -183,7 +183,7 @@ const ScheduleListPage: FC = () => {
             </Select>
           </div>
           <Button asChild>
-            <Link href="/schedule/create">
+            <Link href="/match/create">
               <Plus className="h-4 w-4 mr-2" />
               모임 만들기
             </Link>
@@ -209,4 +209,4 @@ const ScheduleListPage: FC = () => {
   )
 }
 
-export default ScheduleListPage;
+export default MatchListPage;

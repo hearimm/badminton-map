@@ -53,13 +53,13 @@ export default function NaverMap({ onPlacesFetched: onPlacesFetched }: NaverMapP
       const newMarkers = data.map(location => {
         const marker = new naver.maps.Marker({
           position: new naver.maps.LatLng(location.latitude!, location.longitude!),
-          title: location.name || '',
+          title: location.place_name || '',
           map: map
         })
 
         var contentString = [
           '<div class="iw_inner">',
-          `   <h3>${location.name}</h3>`,
+          `   <h3>${location.place_name}</h3>`,
           `   <p>${location.address}<br />`,
           '   </p>',
           '</div>'

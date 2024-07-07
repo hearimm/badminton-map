@@ -55,7 +55,7 @@ export default function Header() {
 
   const linkList = [
     { href: '/dashboard', name: 'Dashboard' },
-    { href: '/schedule', name: 'Schedule' },
+    { href: '/match', name: 'Schedule' },
     { href: '/map', name: 'Map' },
   ]
 

@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input"
 import { supabase } from '@/lib/initSupabase'
 
 type Place = {
-  id: number
-  name: string
+  place_id: number
+  place_name: string
   address: string
 }
 
@@ -24,8 +24,8 @@ export default function PlaceSearchModal({ onSelect }: PlaceSearchModalProps) {
     setIsLoading(true)
     const { data, error } = await supabase
       .from('places')
-      .select('id, name, address')
-      .ilike('name', `%${searchTerm}%`)
+      .select('place_id, place_name, address')
+      .ilike('place_name', `%${searchTerm}%`)
       .limit(10)
 
     if (error) console.error('Error searching places:', error)
@@ -61,11 +61,11 @@ export default function PlaceSearchModal({ onSelect }: PlaceSearchModalProps) {
           <div className="max-h-[300px] overflow-y-auto">
             {places.map((place) => (
               <div
-                key={place.id}
+                key={place.place_id}
                 className="p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => handleSelect(place.id, place.name)}
+                onClick={() => handleSelect(place.place_id, place.place_name)}
               >
-                <div>{place.name}</div>
+                <div>{place.place_name}</div>
                 <div className="text-sm text-gray-500">{place.address}</div>
               </div>
             ))}
