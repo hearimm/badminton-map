@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
@@ -38,6 +38,29 @@ export default function Chat({ matchId }: ChatProps) {
       setUser(user);
     };
 
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select(`
+          *,
+          user_profiles (
+            user_id,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('match_id', matchId)
+        .order('created_at', { ascending: true });
+  
+      console.log(matchId, data);
+  
+      if (error) {
+        console.error('Error fetching messages:', error);
+      } else {
+        setMessages(data || []);
+      }
+    };
+
     fetchUser();
     fetchMessages();
 
@@ -55,26 +78,6 @@ export default function Chat({ matchId }: ChatProps) {
       supabase.removeChannel(channel);
     };
   }, [matchId, supabase, router]);
-
-  const fetchMessages = async () => {
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select(`
-        *,
-        user_profiles (
-          user_id,
-          display_name,
-          avatar_url
-        )
-      `)
-      .eq('match_id', matchId)
-      .order('created_at', { ascending: true });
-
-    console.log(matchId, data);
-
-    if (error) console.error('Error fetching messages:', error);
-    else setMessages(data || []);
-  };
 
   const sendMessage = async () => {
     if (!user || !newMessage.trim()) return;
@@ -109,7 +112,9 @@ export default function Chat({ matchId }: ChatProps) {
             <div className={`flex flex-col ${msg.user_id === user?.id ? 'items-end' : 'items-start'}`}>
               <span className="text-sm text-gray-500 mb-1">{msg.user_profiles?.display_name || 'Anonymous'}</span>
               <span className={`inline-block rounded-lg px-3 py-2 ${
-                msg.user_id === user?.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+                msg.user_id === user?.id ? 
+                'bg-primary text-primary-foreground' 
+                : 'bg-gray-200 text-gray-800'
               }`}>
                 {msg.message}
               </span>
