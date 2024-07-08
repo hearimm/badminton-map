@@ -121,6 +121,52 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          match_id: number | null
+          message: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          match_id?: number | null
+          message: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          match_id?: number | null
+          message?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_user_id_fkey1"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       club_place_mapping: {
         Row: {
           additional_info: Json | null
@@ -255,6 +301,7 @@ export type Database = {
           id: number
           level: string | null
           manager_id: string | null
+          match_name: string | null
           match_time: string | null
           max: number | null
           max_level: number
@@ -272,6 +319,7 @@ export type Database = {
           id?: number
           level?: string | null
           manager_id?: string | null
+          match_name?: string | null
           match_time?: string | null
           max?: number | null
           max_level?: number
@@ -289,6 +337,7 @@ export type Database = {
           id?: number
           level?: string | null
           manager_id?: string | null
+          match_name?: string | null
           match_time?: string | null
           max?: number | null
           max_level?: number

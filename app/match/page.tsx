@@ -21,21 +21,26 @@ import { Database } from "@/supabase/types"
 
 import WeekNavigation from "@/components/weekNavigation"
 
-type Matches = Database['public']['Tables']['matches']['Row'] & {
-  places: { name: string } | null
-}
+type Matches = Database['public']['Tables']['matches']['Row']
+type Places = Database['public']['Tables']['places']['Row']
+// 조인된 결과를 위한 새로운 타입 정의
+type MatchWithPlace = Matches & {
+  places: Pick<Places, 'place_name' | 'address'> | null;
+};
 
-async function fetchMatches(date: Date): Promise<Matches[]> {
+async function fetchMatches(date: Date): Promise<MatchWithPlace[]> {
   try {
     const { data, error } = await supabase
       .from('matches')
-      .select('*, places(place_name)')
+      .select('*, places(place_name, address)')
       .eq('date', format(date, 'yyyy-MM-dd'))
       .order('time', { ascending: true })
 
     if (error) throw error
 
-    return data as Matches[]
+    console.log(data)
+
+    return data as MatchWithPlace[]
   } catch (error) {
     console.error('Error fetching data:', error)
     throw error
@@ -55,15 +60,15 @@ const levelRanges = [
 ]
 
 interface MatchCardProps {
-  match: Matches;
+  match: MatchWithPlace;
 }
 
 const MatchCard: FC<MatchCardProps> = ({ match }) => {
   const typeEmoji = { "운동/스포츠": "🏸", "스터디": "📚", "친목": "🍻" }
-  const emoji = typeEmoji[match.type] || "🏸"
+  const emoji = "🏸"
   const generateColor = (id: number) => `hsl(${(id * 137.508) % 360}, 70%, 80%)`
   const backgroundColor = generateColor(match.id)
-
+  const match_name = match.places?.place_name || '장소 미정'
   return (
     <Link key={match.id} href={`/match/${match.id}`} passHref>
       <Card className="overflow-hidden mt-4">
@@ -75,10 +80,10 @@ const MatchCard: FC<MatchCardProps> = ({ match }) => {
             {emoji}
           </div>
           <div className="p-4">
-            <h3 className="text-lg font-bold mb-2">{match.description || '모임 제목'}</h3>
+            <h3 className="text-lg font-bold mb-2">{match_name || '모임 제목'}</h3>
             <div className="flex items-center text-gray-600 mb-2">
               <MapPin className="h-4 w-4 mr-1" />
-              <span>{match.places?.place_name || '장소 미정'}</span>
+              <div>{match.places?.address || '' }</div>
             </div>
             <div className="flex items-center text-gray-600 mb-2">
               <Calendar className="h-4 w-4 mr-1" />
@@ -175,7 +180,7 @@ const MatchListPage: FC = () => {
                 <SelectValue placeholder="레벨 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">누구나</SelectItem>
+                <SelectItem value="all">레벨 선택</SelectItem>
                 {levelRanges.map(o => 
                   <SelectItem key={o.minLevel} value={o.minLevel+''}>{o.name}</SelectItem>
                 )}

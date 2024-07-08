@@ -1,74 +1,70 @@
-import { notFound } from 'next/navigation'
-import Header from "@/components/header"
-import NaverMapOne from "@/components/naver-map-one"
-import Link from "next/link"
+import { notFound } from 'next/navigation';
+import Header from "@/components/header";
+import NaverMapOne from "@/components/naver-map-one";
 import {
-    ArrowUpRight,
     Calendar,
     Clock,
-    Users,
-    MapPin,
     Info,
-    DollarSign,
-    Shield,
+    MapPin,
     RefreshCw,
-} from "lucide-react"
-
-import { Button } from "@/components/ui/button"
+    Shield,
+} from "lucide-react";
+import { BadgeCheck, DollarSign, Users, ClipboardList } from 'lucide-react';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
-import { supabase } from "@/lib/initSupabase"
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/lib/initSupabase";
 import { Database } from "@/supabase/types";
-import Chat from "@/components/chat"
+import Chat from "@/components/chat";
+import ParticipantsCard from "@/components/participants-card";
+import { createClient } from '@/utils/supabase/server';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type Matches = Database['public']['Tables']['matches']['Row'];
 type Places = Database['public']['Tables']['places']['Row'];
 type Participants = Database['public']['Tables']['participants']['Row'];
+type UserProfiles = Database['public']['Tables']['user_profiles']['Row'];
 
-// 조인된 결과를 위한 새로운 타입 정의
+type ParticipantWithProfile = Participants & {
+  user_profiles: Pick<UserProfiles, 'display_name' | 'avatar_url'> | null;
+};
+
 type MatchWithPlace = Matches & {
-  places: Pick<Places, 'place_name'> | null;
+  places: Pick<Places, 'place_name' | 'address'> | null;
 };
 
 async function fetchMatchDetails(id: string): Promise<MatchWithPlace> {
     try {
       const { data, error } = await supabase
         .from('matches')
-        .select('*, places(place_name)')
+        .select('*, places(place_name, address)')
         .eq('id', id)
-        .single();  // 단일 결과를 반환하도록 수정
-  
+        .single();
+
       if (error) throw error;
-  
+
       if (!data) throw new Error('Match not found');
-  
+
       return data as MatchWithPlace;
     } catch (error) {
       console.error('Error fetching match details:', error);
       throw error;
     }
-  }
+}
 
-async function fetchParticipants(matchId: string): Promise<Participants[]> {
-    // Fetch participants data from Supabase
-    // Return an array of participants
+async function fetchParticipants(matchId: string): Promise<ParticipantWithProfile[]> {
     try {
         const { data, error } = await supabase
             .from('participants')
-            .select('*')
-            .eq('match_id', matchId)    // Correct
+            .select('*, user_profiles(avatar_url, display_name)')
+            .eq('match_id', matchId);
 
         if (error) throw error;
 
-        console.log('Data fetched successfully:', data);
         return data;
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -76,14 +72,34 @@ async function fetchParticipants(matchId: string): Promise<Participants[]> {
     }
 }
 
+async function fetchUserProfile(): Promise<UserProfiles> {
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return {} as UserProfiles;
+
+        const { data, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        return data || {} as UserProfiles;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
+}
+
 export default async function ScheduleDetailPage({ params }: { params: { id: string } }) {
-    
-    const match = await fetchMatchDetails(params.id)
-    const participants = await fetchParticipants(params.id)
-    const participantsCount = participants?.length || 0;
-    console.log(participants)
+    const match = await fetchMatchDetails(params.id);
+    const participants = await fetchParticipants(params.id);
+    const userProfile = await fetchUserProfile();
+
     if (!match) {
-        notFound()
+        notFound();
     }
 
     return (
@@ -94,9 +110,8 @@ export default async function ScheduleDetailPage({ params }: { params: { id: str
                     <div className="md:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-2xl">{match.description || "Badminton Match"}</CardTitle>
-
-                                <div className="flex items-center space-x-2">
+                                <CardTitle className="text-2xl">{match.places?.place_name || "Badminton Match"}</CardTitle>
+                                <div className="flex items-center space-x-2 text-gray-600">
                                     <Calendar className="h-4 w-4" />
                                     <span>{match.date}</span>
                                     <Clock className="h-4 w-4 ml-4" />
@@ -107,9 +122,9 @@ export default async function ScheduleDetailPage({ params }: { params: { id: str
                                 <div className="aspect-video relative">
                                     <NaverMapOne id={match.place_id + ''} />
                                 </div>
-                                <div className="mt-4 flex items-center">
+                                <div className="mt-4 flex items-center text-gray-600">
                                     <MapPin className="h-5 w-5 mr-2" />
-                                    <span>{match.places?.place_name || "Location Name"}</span>
+                                    <span>{match.places?.address || "Location Name"}</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -119,56 +134,49 @@ export default async function ScheduleDetailPage({ params }: { params: { id: str
                                 <CardTitle>Match Details</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <h4 className="font-semibold">Skill Level</h4>
-                                        <Badge variant="secondary">{match.level}</Badge>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold">Participants</h4>
-                                        <p>{participantsCount} / {match.max}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold">Fee</h4>
-                                        <p>{match.fee || "Free"}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold">Equipment</h4>
-                                        <p>Racket, Indoor shoes</p>
-                                    </div>
-                                </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <h4 className="font-semibold flex items-center">
+                                  <BadgeCheck className="h-5 w-5 mr-1 text-gray-600" />
+                                  실력 수준
+                                </h4>
+                                <Badge variant="secondary">{match.level}</Badge>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold flex items-center">
+                                  <Users className="h-5 w-5 mr-1 text-gray-600" />
+                                  최대 참석인원
+                                </h4>
+                                <Badge variant="secondary">{match.max} 명</Badge>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold flex items-center">
+                                  <DollarSign className="h-5 w-5 mr-1 text-gray-600" />
+                                  요금
+                                </h4>
+                                <Badge variant="secondary">{match.fee || "Free"}</Badge>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold flex items-center">
+                                  <ClipboardList className="h-5 w-5 mr-1 text-gray-600" />
+                                  준비물
+                                </h4>
+                                <Badge variant="secondary">개인 라켓</Badge>
+                                <Badge variant="secondary">실내용 운동화(배드민턴화, 농구화)</Badge>
+                              </div>
+                            </div>
                             </CardContent>
                         </Card>
     
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Participants</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-4">
-                                    {participants?.map((participant, index) => (
-                                        <Avatar key={index}>
-                                            <AvatarImage src={participant.avatar} />
-                                            <AvatarFallback>{participant.name[0]}</AvatarFallback>
-                                        </Avatar>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <ParticipantsCard 
+                            matchId={parseInt(params.id)} 
+                            initialParticipants={participants} 
+                            maxParticipants={match.max || 1} 
+                            userProfile={userProfile}
+                        />
                     </div>
     
                     <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Join this Match</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Progress value={(participantsCount / (match.max || 1)) * 100} className="mb-2" />
-                                <p className="text-sm text-gray-500 mb-4">{match.max - participantsCount} spots left</p>
-                                <Button className="w-full">Join Match</Button>
-                            </CardContent>
-                        </Card>
-    
                         <Card>
                             <CardHeader>
                                 <CardTitle>Organizer</CardTitle>
@@ -228,5 +236,5 @@ export default async function ScheduleDetailPage({ params }: { params: { id: str
                 </div>
             </main>
         </div>
-    )
+    );
 }
