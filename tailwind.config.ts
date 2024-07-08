@@ -18,6 +18,9 @@ const config = {
       },
     },
     extend: {
+      zIndex: {
+        '50': '110', // z-50 클래스를 z-index: 110으로 재정의 (네이버 지도가 100 으로 사용하는 케이스가 많아서 조정)
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
