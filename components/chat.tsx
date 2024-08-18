@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,11 @@ export default function Chat({ matchId }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [user, setUser] = useState<any>(null);
+  const [isSending, setIsSending] = useState(false);
   const router = useRouter();
   const supabase = createClient();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -68,7 +70,7 @@ export default function Chat({ matchId }: ChatProps) {
       .channel(`match-${matchId}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `match_id=eq.${matchId}` },
-        payload => {
+        () => { // Removed unused 'payload' parameter
           fetchMessages();
         }
       )
@@ -79,16 +81,44 @@ export default function Chat({ matchId }: ChatProps) {
     };
   }, [matchId, supabase, router]);
 
-  const sendMessage = async () => {
-    if (!user || !newMessage.trim()) return;
 
-    const { error } = await supabase
-      .from('chat_messages')
-      .insert({ match_id: matchId, user_id: user.id, message: newMessage.trim() });
+  const sendMessage = useCallback(async () => {
+    if (!user || !newMessage.trim() || isSending) return;
 
-    if (error) console.error('Error sending message:', error);
-    else setNewMessage('');
-  };
+    setIsSending(true);
+    const messageToSend = newMessage.trim();
+    setNewMessage('');
+
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({ match_id: matchId, user_id: user.id, message: messageToSend });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Optionally, revert the message if sending failed
+      setNewMessage(messageToSend);
+    } finally {
+      setIsSending(false);
+    }
+  }, [user, newMessage, isSending, matchId, supabase]);
+
+  const handleSendMessage = useCallback(() => {
+    if (sendTimeoutRef.current) {
+      clearTimeout(sendTimeoutRef.current);
+    }
+    sendTimeoutRef.current = setTimeout(() => {
+      sendMessage();
+    }, 300); // 300ms debounce
+  }, [sendMessage]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  }, [handleSendMessage]);
 
   const scrollToBottom = () => {
     scrollRef.current?.scrollIntoView({ behavior: "instant" });
@@ -98,10 +128,11 @@ export default function Chat({ matchId }: ChatProps) {
     scrollToBottom();
   }, [messages]);
 
+
   return (
     <div className="flex flex-col h-[400px]">
       <ScrollArea className="flex-grow p-4">
-        {messages.map((msg, index) => (
+        {messages.map((msg) => (
           <div key={msg.id} className={`flex items-start mb-4 ${msg.user_id === user?.id ? 'justify-end' : 'justify-start'}`}>
             {msg.user_id !== user?.id && (
               <Avatar className="mr-2">
@@ -133,10 +164,13 @@ export default function Chat({ matchId }: ChatProps) {
         <Input
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          disabled={isSending}
         />
-        <Button onClick={sendMessage} className="ml-2">Send</Button>
+        <Button onClick={handleSendMessage} className="ml-2" disabled={isSending}>
+          {isSending ? 'Sending...' : 'Send'}
+        </Button>
       </div>
     </div>
   );
