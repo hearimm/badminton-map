@@ -161,7 +161,7 @@ const MatchListPage: FC = () => {
     <div className="flex min-h-screen w-full flex-col">
       <Header />
       <main className="flex flex-1 flex-col p-4">
-        <h1 className="text-2xl font-bold mb-4">다가오는 정기모임</h1>
+        <h1 className="text-2xl font-bold mb-4">Upcoming Match</h1>
         {/**<
           WeekNavigation selectedDate={selectedDate} setSelectedDate={setSelectedDate} /> 
           */}
