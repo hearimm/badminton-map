@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import {
@@ -21,16 +20,21 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { format } from 'date-fns'
+import { format, addHours, parseISO } from 'date-fns'
+import { format as formatTz } from 'date-fns-tz'
 
 import Header from "@/components/header"
 import { supabase } from "@/lib/initSupabase"
 import PlaceSearchModal from "@/components/placeSearchModal"
+import { getSession } from "@/app/login/actions"
 
 const FormSchema = z.object({
   max: z.number().int().positive().max(100).optional(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식을 사용하세요."),
-  time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "시간 형식이 올바르지 않습니다. HH:MM 형식을 사용하세요."),
+  date: z.string().optional(),
+  time: z.string().optional(),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식을 사용하세요."),
+  start_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "시간 형식이 올바르지 않습니다. HH:MM 형식을 사용하세요."),
+  duration: z.number().int().positive().max(24).default(2),
   level: z.string().optional(),
   level_template: z.string().optional(),
   min_level: z.number().int().min(0).max(100),
@@ -80,10 +84,11 @@ export default function ScheduleCreatePage() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       max: 10,
-      date: format(new Date(), 'yyyy-MM-dd'),
+      start_date: format(new Date(), 'yyyy-MM-dd'),
+      start_time: '19:00',
+      duration: 2,
       level: "누구나",
       level_template: "누구나",
-      time: '19:00',
       min_level: 0,
       max_level: 100,
       description: '',
@@ -114,7 +119,7 @@ export default function ScheduleCreatePage() {
       setLevelRange([category.minLevel, category.maxLevel])
       setCustomLevelDescription(category.name)
     }
-  }, [form.watch("level_template")])
+  }, [form])
 
   useEffect(() => {
     console.log("levelRange changed:", levelRange); // levelRange가 변경될 때마다 로그 출력
@@ -126,20 +131,64 @@ export default function ScheduleCreatePage() {
     
     console.log("levelRange changed level:", form.getValues('level')); // levelRange가 변경될 때마다 로그 출력
     console.log("levelRange changed level_template:", form.getValues('level_template')); // levelRange가 변경될 때마다 로그 출력
-  }, [levelRange])
+  }, [levelRange, form])
 
-  function filterFormData(data: FormValues) {
-    // level_template submit 시 제거
-    const { level_template, ...filteredData } = data;
-    return filteredData;
+  async function filterFormData(data: FormValues) {
+    const { level_template, start_date, start_time, duration, ...filteredData } = data;
+    
+    const localDateTime = parseISO(`${start_date}T${start_time}:00`);
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const startTimeWithZone = formatTz(localDateTime, "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone });
+    const endDateTime = addHours(localDateTime, duration);
+    const endTimeWithZone = formatTz(endDateTime, "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone });
+
+    // Get current user ID
+    // 현재 세션에서 사용자 정보 가져오기
+    const { session } = await getSession();
+    // const session = data.session;
+
+    if (!session) {
+      throw new Error('No active session. User must be logged in.');
+    }
+
+    const userId = session.user.id;
+
+    return {
+      ...filteredData,
+      date: start_date,
+      time: start_time,
+      start_time: startTimeWithZone,
+      end_time: endTimeWithZone,
+      created_user: userId,
+      modified_user: userId,
+      manager_id: userId,
+    };
   }
 
   async function onSubmit(data: FormValues) {
-    const filteredData = filterFormData(data);
+    const filteredData = await filterFormData(data);
     setIsSubmitting(true)
     try {
-      const { error } = await supabase.from('matches').insert([filteredData])
-      if (error) throw error
+      // Start a transaction by using single batch
+      const { data: match, error: matchError } = await supabase
+        .from('matches')
+        .insert([filteredData])
+        .select()
+        .single();
+
+      if (matchError) throw matchError;
+
+      // Insert manager into participants table
+      const { error: participantError } = await supabase
+        .from('participants')
+        .insert([{
+          match_id: match.id,
+          user_id: match.manager_id,
+          status: 'attending'
+        }]);
+
+      if (participantError) throw participantError;
+
       toast({
         title: "Match created successfully",
         description: "Your new match has been added to the schedule.",
@@ -200,10 +249,10 @@ export default function ScheduleCreatePage() {
                 />
                 <FormField
                   control={form.control}
-                  name="date"
+                  name="start_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>Start Date</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -213,12 +262,29 @@ export default function ScheduleCreatePage() {
                 />
                 <FormField
                   control={form.control}
-                  name="time"
+                  name="start_time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time</FormLabel>
+                      <FormLabel>Start Time</FormLabel>
                       <FormControl>
                         <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="duration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Duration (hours)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

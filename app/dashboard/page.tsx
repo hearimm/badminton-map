@@ -1,92 +1,256 @@
 'use client'
-import { useState } from "react";
 
+import { useEffect, useState, FC } from "react"
 import Link from "next/link"
-import {
-  ArrowUpRight,
-} from "lucide-react"
+import { MapPin, Users, Loader2, Calendar, Plus, Filter } from "lucide-react"
+import { startOfDay, endOfDay, format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
-import NaverMap from "@/components/naver-map";
+import Header from "@/components/header"
+import { supabase } from "@/lib/initSupabase"
+import { Database } from "@/supabase/types"
 
-import { Database } from "@/supabase/types";
-import Header from "@/components/header";
-type Places = Database['public']['Tables']['places']['Row'];
+import WeekNavigation from "@/components/weekNavigation"
+import { getSession } from "@/app/login/actions";
 
-export default function Dashboard() {
-  const [places, setPlaces] = useState<Places[]>([]);
+type Matches = Database['public']['Tables']['matches']['Row']
+type Places = Database['public']['Tables']['places']['Row']
+type Participants = Database['public']['Tables']['participants']['Row']
+
+// 조인된 결과를 위한 새로운 타입 정의
+type MatchWithPlace = Matches & {
+  places: Pick<Places, 'place_name' | 'address'> | null;
+  participants: Array<Participants & { count: number }>;
+  local_start_time: string;
+  local_end_time: string;
+  participants_count: number;
+};
+
+async function fetchMatches(date: Date): Promise<MatchWithPlace[]> {
+  // 현재 세션에서 사용자 정보 가져오기
+  const { session } = await getSession();
+  // const session = data.session;
+
+  if (!session) {
+    throw new Error('No active session. User must be logged in.');
+  }
+
+  const userId = session.user.id;
+
+  try {
+    const startOfDayUTC = startOfDay(date);
+    const endOfDayUTC = endOfDay(date);
+
+    console.log(startOfDayUTC)
+    const { data, error } = await supabase
+    .from('matches')
+    .select(`
+      *,
+      places(place_name, address),
+      participants!inner(id, user_id, status),
+      attending_count:participants(count).filter(status.eq.attending)
+    `)
+    .eq('participants.user_id', userId)
+    .eq('participants.status', 'attending')
+    .gte('start_time', startOfDayUTC.toISOString())
+    .lt('start_time', endOfDayUTC.toISOString())
+    .order('start_time', { ascending: true });
+
+    if (error) throw error
+
+    // Convert UTC times to local timezone for display
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const formattedData: MatchWithPlace[] = data.map((match: MatchWithPlace) => ({
+      ...match,
+      local_start_time: format(toZonedTime(new Date(match.start_time || ""), timeZone), 'yyyy-MM-dd HH:mm:ss'),
+      local_end_time: format(toZonedTime(new Date(match.end_time || ""), timeZone), 'yyyy-MM-dd HH:mm:ss'),
+      participants_count: match.participants[0].count,
+    }));
+
+    console.log(formattedData);
+
+    return formattedData as MatchWithPlace[];
+  } catch (error) {
+    console.error('Error fetching data:', error)
+    throw error
+  }
+}
+
+const levelRanges = [
+  { name: "랠리 가능자", minLevel: 1, maxLevel: 10 },
+  { name: "룰 숙지자", minLevel: 11, maxLevel: 20 },
+  { name: "왕왕초심", minLevel: 21, maxLevel: 30 },
+  { name: "왕초심", minLevel: 31, maxLevel: 40 },
+  { name: "초심", minLevel: 41, maxLevel: 50 },
+  { name: "D조", minLevel: 51, maxLevel: 60 },
+  { name: "C조", minLevel: 61, maxLevel: 70 },
+  { name: "B조", minLevel: 71, maxLevel: 80 },
+  { name: "A조", minLevel: 81, maxLevel: 100 },
+]
+
+interface MatchCardProps {
+  match: MatchWithPlace;
+}
+
+const MatchCard: FC<MatchCardProps> = ({ match }) => {
+  const typeEmoji = { "운동/스포츠": "🏸", "스터디": "📚", "친목": "🍻" }
+  const emoji = "🏸"
+  const generateColor = (id: number) => `hsl(${(id * 137.508) % 360}, 70%, 80%)`
+  const backgroundColor = generateColor(match.id)
+  const match_name = match.places?.place_name || '장소 미정'
+  return (
+    <Link key={match.id} href={`/match/${match.id}`} passHref>
+      <Card className="overflow-hidden mt-4">
+        <CardContent className="p-0">
+          <div 
+            className="h-40 flex items-center justify-center text-4xl"
+            style={{ backgroundColor }}
+          >
+            {emoji}
+          </div>
+          <div className="p-4">
+            <h3 className="text-lg font-bold mb-2">{match_name || '모임 제목'}</h3>
+            <div className="flex items-center text-gray-600 mb-2">
+              <MapPin className="h-4 w-4 mr-1" />
+              <div>{match.places?.address || '' }</div>
+            </div>
+            <div className="flex items-center text-gray-600 mb-2">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>{`${format(match.local_start_time, "MM-dd HH:mm")} ~ ${format(match.local_end_time, "HH:mm")}`}</span>
+            </div>
+            <div className="flex items-center">
+              <Users className="h-4 w-4 mr-1" />
+              <span>{match.participants_count || 0}명 참석중({match.max}명)</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  )
+}
+
+const MatchListPage: FC = () => {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [filteredMatches, setFilteredMatches] = useState<MatchWithPlace[]>([])
+  const [matches, setMatches] = useState<MatchWithPlace[]>([])
+
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [levelFitler, setLevelFitler] = useState<string>('all')
+  
+  useEffect(() => {
+    const getMatches = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await fetchMatches(selectedDate)
+        let filteredMatchesData = data;
+        setMatches(data);
+
+        if (levelFitler && levelFitler !== 'all') {
+          const intLevelFitler = parseInt(levelFitler)
+          filteredMatchesData = data.filter(match =>  match.min_level <= intLevelFitler && match.max_level >= intLevelFitler)
+        }
+        setFilteredMatches(filteredMatchesData);
+
+      } catch (err) {
+        console.error('Failed to fetch matches:', err)
+        setError('Failed to fetch matches. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    getMatches()
+  }, [selectedDate])
+
+  useEffect(() => {
+    const getFilteredMatches = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = matches;
+        let filteredMatchesData = data;
+  
+        if (levelFitler && levelFitler !== 'all') {
+          const intLevelFitler = parseInt(levelFitler)
+          filteredMatchesData = data.filter(match => match.min_level <= intLevelFitler && match.max_level >= intLevelFitler)
+        }
+        setFilteredMatches(filteredMatchesData);
+      } catch (err) {
+        console.error('Failed to fetch matches:', err)
+        setError('Failed to fetch matches. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    getFilteredMatches()
+  }, [levelFitler])
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <Header></Header>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <Card className="hidden lg:block"
-             x-chunk="dashboard-01-chunk-4"
-          >
-            <CardHeader className="flex flex-row items-center">
-              <div className="grid gap-2">
-                <CardTitle>Infomation</CardTitle>
-                <CardDescription>
-                  체육관 정보
-                </CardDescription>
-              </div>
-              <Button asChild size="sm" className="ml-auto gap-1">
-                <Link href="#">
-                  View All
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent className="min-h-96 max-h-96 overflow-y-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>체육관</TableHead>
-                    <TableHead>클럽</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                {places.map((club) => (
-                  <TableRow key={club.id}>
-                    <TableCell>
-                    <div className="font-medium">
-                      <Badge>{club.type}</Badge>{club.name}
-                    </div>
-                    <div className="hidden text-sm text-muted-foreground md:inline">
-                      {club.schedule}
-                    </div>
-                    
-                    </TableCell>
-                    <TableCell>{club.club_name}</TableCell>
-                  </TableRow>
-                ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-          <Card className="xl:col-span-2 h-[500px]" x-chunk="dashboard-01-chunk-5">
-            <NaverMap onPlacesFetched={setPlaces}></NaverMap>
-          </Card>
+      <Header />
+      <main className="flex flex-1 flex-col p-4">
+        <h1 className="text-2xl font-bold mb-4">Upcoming Match</h1>
+        {/**<
+          WeekNavigation selectedDate={selectedDate} setSelectedDate={setSelectedDate} /> 
+          */}
+        <WeekNavigation 
+        selectedDate={selectedDate} 
+        setSelectedDate={(date) => {
+          setSelectedDate(date);
+          // 여기서 필요한 경우 matches를 다시 불러오는 로직을 추가할 수 있습니다.
+        }} 
+      />
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <Filter className="h-4 w-4 mr-2" />
+            <Select onValueChange={(value) => setLevelFitler(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="레벨 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">레벨 선택</SelectItem>
+                {levelRanges.map(o => 
+                  <SelectItem key={o.minLevel} value={o.minLevel+''}>{o.name}</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button asChild>
+            <Link href="/match/create">
+              <Plus className="h-4 w-4 mr-2" />
+              모임 만들기
+            </Link>
+          </Button>
         </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-40">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
+        ) : filteredMatches.length === 0 ? (
+          <div className="text-center text-gray-500">해당 날짜의 모임이 없습니다.</div>
+        ) : (
+          <div className="space-y-4">
+            {filteredMatches.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   )
 }
+
+export default MatchListPage;

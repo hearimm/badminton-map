@@ -298,6 +298,7 @@ export type Database = {
           created_user: string | null
           date: string | null
           description: string | null
+          end_time: string | null
           id: number
           level: string | null
           manager_id: string | null
@@ -309,6 +310,7 @@ export type Database = {
           modified_at: string | null
           modified_user: string | null
           place_id: number | null
+          start_time: string | null
           time: string | null
         }
         Insert: {
@@ -316,6 +318,7 @@ export type Database = {
           created_user?: string | null
           date?: string | null
           description?: string | null
+          end_time?: string | null
           id?: number
           level?: string | null
           manager_id?: string | null
@@ -327,6 +330,7 @@ export type Database = {
           modified_at?: string | null
           modified_user?: string | null
           place_id?: number | null
+          start_time?: string | null
           time?: string | null
         }
         Update: {
@@ -334,6 +338,7 @@ export type Database = {
           created_user?: string | null
           date?: string | null
           description?: string | null
+          end_time?: string | null
           id?: number
           level?: string | null
           manager_id?: string | null
@@ -345,6 +350,7 @@ export type Database = {
           modified_at?: string | null
           modified_user?: string | null
           place_id?: number | null
+          start_time?: string | null
           time?: string | null
         }
         Relationships: [
@@ -403,6 +409,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_user_id_fkey1"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -682,6 +695,7 @@ export type Database = {
           owner_id: string | null
           path_tokens: string[] | null
           updated_at: string | null
+          user_metadata: Json | null
           version: string | null
         }
         Insert: {
@@ -695,6 +709,7 @@ export type Database = {
           owner_id?: string | null
           path_tokens?: string[] | null
           updated_at?: string | null
+          user_metadata?: Json | null
           version?: string | null
         }
         Update: {
@@ -708,6 +723,7 @@ export type Database = {
           owner_id?: string | null
           path_tokens?: string[] | null
           updated_at?: string | null
+          user_metadata?: Json | null
           version?: string | null
         }
         Relationships: [
@@ -729,6 +745,7 @@ export type Database = {
           key: string
           owner_id: string | null
           upload_signature: string
+          user_metadata: Json | null
           version: string
         }
         Insert: {
@@ -739,6 +756,7 @@ export type Database = {
           key: string
           owner_id?: string | null
           upload_signature: string
+          user_metadata?: Json | null
           version: string
         }
         Update: {
@@ -749,6 +767,7 @@ export type Database = {
           key?: string
           owner_id?: string | null
           upload_signature?: string
+          user_metadata?: Json | null
           version?: string
         }
         Relationships: [

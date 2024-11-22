@@ -3,7 +3,8 @@
 import { useEffect, useState, FC } from "react"
 import Link from "next/link"
 import { MapPin, Users, Loader2, Calendar, Plus, Filter } from "lucide-react"
-import { format } from 'date-fns'
+import { startOfDay, endOfDay, format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,24 +24,47 @@ import WeekNavigation from "@/components/weekNavigation"
 
 type Matches = Database['public']['Tables']['matches']['Row']
 type Places = Database['public']['Tables']['places']['Row']
+type Participants = Database['public']['Tables']['participants']['Row']
+
 // 조인된 결과를 위한 새로운 타입 정의
 type MatchWithPlace = Matches & {
   places: Pick<Places, 'place_name' | 'address'> | null;
+  participants: Array<Participants & { count: number }>;
+  local_start_time: string;
+  local_end_time: string;
+  participants_count: number;
 };
 
 async function fetchMatches(date: Date): Promise<MatchWithPlace[]> {
   try {
+    const startOfDayUTC = startOfDay(date);
+    const endOfDayUTC = endOfDay(date);
+
+    console.log(startOfDayUTC)
     const { data, error } = await supabase
       .from('matches')
-      .select('*, places(place_name, address)')
-      .eq('date', format(date, 'yyyy-MM-dd'))
-      .order('time', { ascending: true })
+      .select(`*
+        , places(place_name, address)
+        , participants(count).filter(status.eq.attending)
+        `)
+      .gte('start_time', startOfDayUTC.toISOString())
+      .lt('start_time', endOfDayUTC.toISOString())
+      .order('start_time', { ascending: true });
 
     if (error) throw error
 
-    console.log(data)
+    // Convert UTC times to local timezone for display
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const formattedData: MatchWithPlace[] = data.map((match: MatchWithPlace) => ({
+      ...match,
+      local_start_time: format(toZonedTime(new Date(match.start_time || ""), timeZone), 'yyyy-MM-dd HH:mm:ss'),
+      local_end_time: format(toZonedTime(new Date(match.end_time || ""), timeZone), 'yyyy-MM-dd HH:mm:ss'),
+      participants_count: match.participants[0].count,
+    }));
 
-    return data as MatchWithPlace[]
+    console.log(formattedData);
+
+    return formattedData as MatchWithPlace[];
   } catch (error) {
     console.error('Error fetching data:', error)
     throw error
@@ -87,11 +111,11 @@ const MatchCard: FC<MatchCardProps> = ({ match }) => {
             </div>
             <div className="flex items-center text-gray-600 mb-2">
               <Calendar className="h-4 w-4 mr-1" />
-              <span>{match.time}</span>
+              <span>{`${format(match.local_start_time, "MM-dd HH:mm")} ~ ${format(match.local_end_time, "HH:mm")}`}</span>
             </div>
             <div className="flex items-center">
               <Users className="h-4 w-4 mr-1" />
-              <span>{match.current_participants || 0}명 참석중({match.max}명)</span>
+              <span>{match.participants_count || 0}명 참석중({match.max}명)</span>
             </div>
           </div>
         </CardContent>
@@ -103,8 +127,8 @@ const MatchCard: FC<MatchCardProps> = ({ match }) => {
 const MatchListPage: FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filteredMatches, setFilteredMatches] = useState<Matches[]>([])
-  const [matches, setMatches] = useState<Matches[]>([])
+  const [filteredMatches, setFilteredMatches] = useState<MatchWithPlace[]>([])
+  const [matches, setMatches] = useState<MatchWithPlace[]>([])
 
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [levelFitler, setLevelFitler] = useState<string>('all')
@@ -141,7 +165,7 @@ const MatchListPage: FC = () => {
       try {
         const data = matches;
         let filteredMatchesData = data;
-
+  
         if (levelFitler && levelFitler !== 'all') {
           const intLevelFitler = parseInt(levelFitler)
           filteredMatchesData = data.filter(match => match.min_level <= intLevelFitler && match.max_level >= intLevelFitler)
@@ -155,7 +179,7 @@ const MatchListPage: FC = () => {
       }
     }
     getFilteredMatches()
-  }, [levelFitler, matches])
+  }, [levelFitler])
 
   return (
     <div className="flex min-h-screen w-full flex-col">
