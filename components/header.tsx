@@ -52,6 +52,7 @@ export default function Header() {
     { href: '/dashboard', name: 'Dashboard' },
     { href: '/match', name: 'Match' },
     { href: '/map', name: 'Map' },
+    { href: '/lesson', name: 'Lesson' },
   ];
 
   return (
