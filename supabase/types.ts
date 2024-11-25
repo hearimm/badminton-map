@@ -483,6 +483,114 @@ export type Database = {
         }
         Relationships: []
       }
+      KS_WNTY_PUBLIC_PHSTRN_FCLTY_STTUS_202407: {
+        Row: {
+          ACMD_NMPR_CO: string | null
+          ADTM_CO: string | null
+          DEL_AT: string | null
+          FCLTY_AR_CO: string | null
+          FCLTY_FLAG_NM: string | null
+          FCLTY_HMPG_URL: string | null
+          FCLTY_LA: string | null
+          FCLTY_LO: string | null
+          FCLTY_NM: string | null
+          FCLTY_SDIV_CD: string | null
+          FCLTY_STATE_CD: string | null
+          FCLTY_TY_CD: string | null
+          FCLTY_TY_NM: string | null
+          INDUTY_CD: string | null
+          INDUTY_NM: string | null
+          NATION_ALSFC_AT: string | null
+          POSESN_MBY_CD: string | null
+          POSESN_MBY_CTPRVN_CD: string | null
+          POSESN_MBY_CTPRVN_NM: string | null
+          POSESN_MBY_NM: string | null
+          POSESN_MBY_SIGNGU_CD: string | null
+          POSESN_MBY_SIGNGU_NM: string | null
+          RDNMADR_NM: string | null
+          ROAD_NM_CTPRVN_CD: string | null
+          ROAD_NM_CTPRVN_NM: string | null
+          ROAD_NM_EMD_CD: string | null
+          ROAD_NM_EMD_NM: string | null
+          ROAD_NM_LI_CD: string | null
+          ROAD_NM_LI_NM: string | null
+          ROAD_NM_SIGNGU_CD: string | null
+          ROAD_NM_SIGNGU_NM: string | null
+          RSPNSBLTY_DEPT_NM: string | null
+          RSPNSBLTY_TEL_NO: string | null
+        }
+        Insert: {
+          ACMD_NMPR_CO?: string | null
+          ADTM_CO?: string | null
+          DEL_AT?: string | null
+          FCLTY_AR_CO?: string | null
+          FCLTY_FLAG_NM?: string | null
+          FCLTY_HMPG_URL?: string | null
+          FCLTY_LA?: string | null
+          FCLTY_LO?: string | null
+          FCLTY_NM?: string | null
+          FCLTY_SDIV_CD?: string | null
+          FCLTY_STATE_CD?: string | null
+          FCLTY_TY_CD?: string | null
+          FCLTY_TY_NM?: string | null
+          INDUTY_CD?: string | null
+          INDUTY_NM?: string | null
+          NATION_ALSFC_AT?: string | null
+          POSESN_MBY_CD?: string | null
+          POSESN_MBY_CTPRVN_CD?: string | null
+          POSESN_MBY_CTPRVN_NM?: string | null
+          POSESN_MBY_NM?: string | null
+          POSESN_MBY_SIGNGU_CD?: string | null
+          POSESN_MBY_SIGNGU_NM?: string | null
+          RDNMADR_NM?: string | null
+          ROAD_NM_CTPRVN_CD?: string | null
+          ROAD_NM_CTPRVN_NM?: string | null
+          ROAD_NM_EMD_CD?: string | null
+          ROAD_NM_EMD_NM?: string | null
+          ROAD_NM_LI_CD?: string | null
+          ROAD_NM_LI_NM?: string | null
+          ROAD_NM_SIGNGU_CD?: string | null
+          ROAD_NM_SIGNGU_NM?: string | null
+          RSPNSBLTY_DEPT_NM?: string | null
+          RSPNSBLTY_TEL_NO?: string | null
+        }
+        Update: {
+          ACMD_NMPR_CO?: string | null
+          ADTM_CO?: string | null
+          DEL_AT?: string | null
+          FCLTY_AR_CO?: string | null
+          FCLTY_FLAG_NM?: string | null
+          FCLTY_HMPG_URL?: string | null
+          FCLTY_LA?: string | null
+          FCLTY_LO?: string | null
+          FCLTY_NM?: string | null
+          FCLTY_SDIV_CD?: string | null
+          FCLTY_STATE_CD?: string | null
+          FCLTY_TY_CD?: string | null
+          FCLTY_TY_NM?: string | null
+          INDUTY_CD?: string | null
+          INDUTY_NM?: string | null
+          NATION_ALSFC_AT?: string | null
+          POSESN_MBY_CD?: string | null
+          POSESN_MBY_CTPRVN_CD?: string | null
+          POSESN_MBY_CTPRVN_NM?: string | null
+          POSESN_MBY_NM?: string | null
+          POSESN_MBY_SIGNGU_CD?: string | null
+          POSESN_MBY_SIGNGU_NM?: string | null
+          RDNMADR_NM?: string | null
+          ROAD_NM_CTPRVN_CD?: string | null
+          ROAD_NM_CTPRVN_NM?: string | null
+          ROAD_NM_EMD_CD?: string | null
+          ROAD_NM_EMD_NM?: string | null
+          ROAD_NM_LI_CD?: string | null
+          ROAD_NM_LI_NM?: string | null
+          ROAD_NM_SIGNGU_CD?: string | null
+          ROAD_NM_SIGNGU_NM?: string | null
+          RSPNSBLTY_DEPT_NM?: string | null
+          RSPNSBLTY_TEL_NO?: string | null
+        }
+        Relationships: []
+      }
       lesson_facilities: {
         Row: {
           address: string
@@ -495,6 +603,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           phone: string | null
+          place_id: number | null
           province_code: string
           province_name: string
           updated_at: string | null
@@ -510,6 +619,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           phone?: string | null
+          place_id?: number | null
           province_code: string
           province_name: string
           updated_at?: string | null
@@ -525,6 +635,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           phone?: string | null
+          place_id?: number | null
           province_code?: string
           province_name?: string
           updated_at?: string | null
@@ -894,7 +1005,52 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      gtrgm_compress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: {
+          "": unknown
+        }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      set_limit: {
+        Args: {
+          "": number
+        }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: {
+          "": string
+        }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never

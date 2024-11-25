@@ -35,9 +35,31 @@ export async function updateSession(request: NextRequest) {
 
   const { data, error } = await supabase.auth.getUser()
   const { user } = data;
+  const pathname = request.nextUrl.pathname
 
-  if (!user && privatePaths.some(path => new RegExp(path).test(request.nextUrl.pathname))) {
-    // no user, potentially respond by redirecting the user to the login page
+  // admin 경로 체크
+  if (pathname.startsWith('/admin')) {
+    if (!user) {
+      return NextResponse.rewrite(new URL('/login', request.url));
+    }
+    
+    // admin role 체크
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    console.log('profile', profile)
+
+    if (profile?.role !== 'admin') {
+      console.log('admin role 아님') // todo : 내 계정에 admin 넣어야 함
+      return NextResponse.rewrite(new URL('/match', request.url));
+    }
+  }
+  
+  // 다른 private 경로들은 로그인만 체크
+  else if (!user && privatePaths.some(path => new RegExp(path).test(pathname))) {
     return NextResponse.rewrite(new URL('/login', request.url));
   }
 
