@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/initSupabase"
 import { Database } from "@/supabase/types"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 import NaverMapFacility from "@/components/naver-map-facility"
 import {
   Card,
@@ -21,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Header from "@/components/header"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type LessonFacility = Database['public']['Tables']['lesson_facilities']['Row']
@@ -88,14 +89,24 @@ export default function FacilityDetail({
                   {facility.phone && <span className="ml-2">| {facility.phone}</span>}
                 </CardDescription>
               </div>
-              {facility.homepage_url && (
-                <Button asChild size="sm" className="ml-auto gap-1">
-                  <a href={facility.homepage_url} target="_blank" rel="noopener noreferrer">
-                    홈페이지
-                    <ArrowUpRight className="h-4 w-4" />
-                  </a>
-                </Button>
-              )}
+              <div className="ml-auto flex gap-2">
+                {facility.place_id && (
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/court/${facility.place_id}`}>
+                      <MapPin className="h-4 w-4 mr-2" />
+                      코트 정보
+                    </Link>
+                  </Button>
+                )}
+                {facility.homepage_url && (
+                  <Button asChild size="sm">
+                    <a href={facility.homepage_url} target="_blank" rel="noopener noreferrer">
+                      홈페이지
+                      <ArrowUpRight className="h-4 w-4 ml-2" />
+                    </a>
+                  </Button>
+                )}
+              </div>
             </CardHeader>
           </Card>
 

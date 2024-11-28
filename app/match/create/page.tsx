@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -77,8 +77,27 @@ export default function ScheduleCreatePage() {
   const [selectedPlace, setSelectedPlace] = useState<{ id: number; name: string } | null>(null)
   const [levelRange, setLevelRange] = useState([0, 100])
   const [customLevelDescription, setCustomLevelDescription] = useState("")
-
+  const searchParams = useSearchParams()
   const router = useRouter()
+
+  useEffect(() => {
+    const placeId = searchParams.get('place_id')
+    if (placeId) {
+      const fetchPlace = async () => {
+        const { data, error } = await supabase
+          .from('places')
+          .select('place_id, place_name')
+          .eq('place_id', placeId)
+          .single()
+
+        if (data && !error) {
+          form.setValue('place_id', data.place_id)
+          setSelectedPlace({ id: data.place_id, name: data.place_name })
+        }
+      }
+      fetchPlace()
+    }
+  }, [searchParams])
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),

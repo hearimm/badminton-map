@@ -35,24 +35,41 @@ type ParticipantWithProfile = Participants & {
 
 type MatchWithPlace = Matches & {
   places: Pick<Places, 'place_name' | 'address'> | null;
+  manager_profile?: Pick<UserProfiles, 'display_name' | 'avatar_url' | 'email'>;
 };
 
 async function fetchMatchDetails(id: string): Promise<MatchWithPlace> {
     try {
-      const { data, error } = await supabase
-        .from('matches')
-        .select('*, places(place_name, address)')
-        .eq('id', id)
-        .single();
+        const { data: matchData, error: matchError } = await supabase
+            .from('matches')
+            .select(`
+                *,
+                places(place_name, address)
+            `)
+            .eq('id', id)
+            .single();
 
-      if (error) throw error;
+        if (matchError) throw matchError;
+        if (!matchData) throw new Error('Match not found');
 
-      if (!data) throw new Error('Match not found');
+        // Fetch manager profile separately
+        const { data: managerData, error: managerError } = await supabase
+            .from('user_profiles')
+            .select('display_name, avatar_url, email')
+            .eq('user_id', matchData.manager_id)
+            .single();
 
-      return data as MatchWithPlace;
+        if (managerError) {
+            console.error('Error fetching manager profile:', managerError);
+        }
+
+        return {
+            ...matchData,
+            manager_profile: managerData || null
+        } as MatchWithPlace;
     } catch (error) {
-      console.error('Error fetching match details:', error);
-      throw error;
+        console.error('Error fetching match details:', error);
+        throw error;
     }
 }
 
@@ -179,17 +196,25 @@ export default async function ScheduleDetailPage({ params }: { params: { id: str
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Organizer</CardTitle>
+                                <CardTitle>매치 관리자</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center space-x-4">
                                     <Avatar>
-                                        <AvatarImage src="/organizer-avatar.png" />
-                                        <AvatarFallback>ON</AvatarFallback>
+                                        <AvatarImage src={match.manager_profile?.avatar_url || ''} />
+                                        <AvatarFallback>
+                                            {match.manager_profile?.display_name?.charAt(0) || 'U'}
+                                        </AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <p className="font-semibold">Organizer Name</p>
-                                        <p className="text-sm text-gray-500">Contact: organizer@example.com</p>
+                                        <p className="font-semibold">
+                                            {match.manager_profile?.display_name || '알 수 없음'}
+                                        </p>
+                                        {match.manager_profile?.email && (
+                                            <p className="text-sm text-gray-500">
+                                                연락처: {match.manager_profile.email}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
