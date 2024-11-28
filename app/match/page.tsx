@@ -225,7 +225,36 @@ const MatchListPage: FC = () => {
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
         ) : filteredMatches.length === 0 ? (
-          <div className="text-center text-gray-500">해당 날짜의 모임이 없습니다.</div>
+          <div className="flex flex-col items-center justify-center space-y-6 py-12 text-center">
+            <div className="text-6xl">🏸</div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-800">아직 매치가 없어요!</h3>
+              <p className="text-gray-600 max-w-md">
+                새로운 매치를 만들어 다른 배드민턴 동호인들과 함께 즐거운 시간을 보내보세요.
+                원하는 시간과 장소에서 나만의 매치를 시작할 수 있습니다.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
+                <Link href="/match/create">
+                  <Plus className="h-5 w-5 mr-2" />
+                  새로운 매치 만들기
+                </Link>
+              </Button>
+              <div className="flex gap-4">
+                <Button asChild variant="outline">
+                  <Link href="/guide">
+                    📖 이용 가이드
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/map">
+                    🏸 코트 찾기
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             {filteredMatches.map((match) => (

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { MapPin, Users, Loader2, Calendar, Plus, Filter } from "lucide-react"
 import { startOfDay, endOfDay, format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -140,6 +141,7 @@ const MatchCard: FC<MatchCardProps> = ({ match }) => {
 }
 
 const MatchListPage: FC = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filteredMatches, setFilteredMatches] = useState<MatchWithPlace[]>([])
@@ -149,10 +151,33 @@ const MatchListPage: FC = () => {
   const [levelFitler, setLevelFitler] = useState<string>('all')
   
   useEffect(() => {
+    // 세션 체크를 먼저 수행
+    const checkSession = async () => {
+      try {
+        const { session } = await getSession();
+        if (!session) {
+          router.push('/login?redirect=/dashboard');
+          return;
+        }
+      } catch (err) {
+        router.push('/login?redirect=/dashboard');
+        return;
+      }
+    };
+    
+    checkSession();
+  }, []);
+
+  useEffect(() => {
     const getMatches = async () => {
       setLoading(true)
       setError(null)
       try {
+        const { session } = await getSession();
+        if (!session) {
+          return; // 세션이 없으면 데이터를 가져오지 않음
+        }
+        
         const data = await fetchMatches(selectedDate)
         let filteredMatchesData = data;
         setMatches(data);
@@ -165,6 +190,10 @@ const MatchListPage: FC = () => {
 
       } catch (err) {
         console.error('Failed to fetch matches:', err)
+        if (err instanceof Error && err.message === 'No active session. User must be logged in.') {
+          router.push('/login?redirect=/dashboard');
+          return;
+        }
         setError('Failed to fetch matches. Please try again.')
       } finally {
         setLoading(false)
@@ -238,9 +267,68 @@ const MatchListPage: FC = () => {
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : error ? (
-          <div className="text-center text-red-500">{error}</div>
+          <div className="flex flex-col items-center justify-center space-y-6 py-12 text-center">
+            <div className="text-6xl">😥</div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-800">일시적인 오류가 발생했어요</h3>
+              <p className="text-gray-600 max-w-md">
+                매치 정보를 불러오는 중에 문제가 발생했습니다.
+                잠시 후 다시 시도해 주세요.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Button 
+                onClick={() => window.location.reload()} 
+                size="lg" 
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                🔄 새로고침
+              </Button>
+              <div className="flex gap-4">
+                <Button asChild variant="outline">
+                  <Link href="/guide">
+                    📖 이용 가이드
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <a href="mailto:support@example.com">
+                    💌 문의하기
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
         ) : filteredMatches.length === 0 ? (
-          <div className="text-center text-gray-500">해당 날짜의 모임이 없습니다.</div>
+          <div className="flex flex-col items-center justify-center space-y-6 py-12 text-center">
+            <div className="text-6xl">🏸</div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-800">아직 참여 중인 매치가 없어요!</h3>
+              <p className="text-gray-600 max-w-md">
+                새로운 배드민턴 친구들과 함께 즐거운 시간을 보내보세요.
+                실력과 지역에 맞는 다양한 매치들이 여러분을 기다리고 있습니다.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
+                <Link href="/match/create">
+                  <Plus className="h-5 w-5 mr-2" />
+                  새로운 매치 만들기
+                </Link>
+              </Button>
+              <div className="flex gap-4">
+                <Button asChild variant="outline">
+                  <Link href="/match">
+                    🔍 매치 찾아보기
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/guide">
+                    📖 이용 가이드
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             {filteredMatches.map((match) => (

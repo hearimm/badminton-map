@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from "next/link";
+import { useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,9 @@ type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/';
+  
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema)
   });
@@ -27,16 +31,18 @@ export default function LoginForm() {
   const signInWithKakao = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'kakao',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { 
+        redirectTo: `${window.location.origin}/auth/callback?next=${redirectTo}`,
+      },
     });
   };
 
   const onSubmit = async (data: LoginFormInputs) => {
-    await login(data);
+    await login(data, redirectTo);
   };
 
   const onSignUp = async (data: LoginFormInputs) => {
-    await signup(data);
+    await signup(data, redirectTo);
   };
 
   return (

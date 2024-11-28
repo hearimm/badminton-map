@@ -24,7 +24,7 @@
     "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.1",
-    "@supabase/ssr": "^0.4.0",
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.43.6",
     "@types/navermaps": "^3.7.5",
     "class-variance-authority": "^0.7.0",

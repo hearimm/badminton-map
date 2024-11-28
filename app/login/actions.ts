@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 
-export async function login(data: { email: string; password: string; }) {
+export async function login(data: { email: string; password: string; }, redirectTo: string = '/') {
   const supabase = createClient();
 
   const { error } = await supabase.auth.signInWithPassword(data);
@@ -12,10 +12,10 @@ export async function login(data: { email: string; password: string; }) {
     redirect('/error');
   }
 
-  redirect('/');
+  redirect(redirectTo);
 }
 
-export async function signup(data: { email: string; password: string; }) {
+export async function signup(data: { email: string; password: string; }, redirectTo: string = '/') {
   const supabase = createClient();
 
   const { error } = await supabase.auth.signUp(data);
@@ -24,7 +24,7 @@ export async function signup(data: { email: string; password: string; }) {
     redirect('/error');
   }
 
-  redirect('/');
+  redirect(redirectTo);
 }
 
 export async function signOut() {
